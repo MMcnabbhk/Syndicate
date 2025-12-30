@@ -89,8 +89,8 @@ const CreateAccountModal = () => {
 
                 {/* Logo & Header (Shared) */}
                 <div className="mb-0 text-center">
-                    <span className="font-bold text-[31px] tracking-tight" style={{ color: '#cc5500' }}>
-                        Syndicate.direct
+                    <span className="font-bold text-4xl tracking-tight" style={{ color: '#cc5500' }}>
+                        Syndicate
                     </span>
                 </div>
 

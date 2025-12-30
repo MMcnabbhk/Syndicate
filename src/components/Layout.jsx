@@ -35,8 +35,8 @@ const Layout = () => {
                     <div className="container h-16 flex items-center justify-center relative">
 
                         <div className="absolute left-0 flex items-center">
-                            <Link to="/" className="flex items-center gap-2 font-bold text-2xl" style={{ color: '#cc5500' }}>
-                                <span>Syndicate.direct</span>
+                            <Link to="/" className="flex items-center gap-2 font-bold text-3xl" style={{ color: '#cc5500' }}>
+                                <span>Syndicate</span>
                             </Link>
                         </div>
 
@@ -151,6 +151,9 @@ const Layout = () => {
                     </div>
                 </header>
             )}
+
+            {/* Spacer */}
+            <div style={{ height: '20px', width: '100%' }} />
 
             {/* Main Content */}
             <main className="flex-1">

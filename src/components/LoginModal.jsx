@@ -37,8 +37,8 @@ const LoginModal = () => {
 
                 {/* Logo - with much more padding below */}
                 <div className="mb-0">
-                    <span className="font-bold text-[31px] tracking-tight" style={{ color: '#cc5500' }}>
-                        Syndicate.direct
+                    <span className="font-bold text-4xl tracking-tight" style={{ color: '#cc5500' }}>
+                        Syndicate
                     </span>
                 </div>
 

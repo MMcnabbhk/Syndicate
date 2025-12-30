@@ -10,7 +10,7 @@ export const StoreProvider = ({ children }) => {
     // Initialize state from LocalStorage or default mock
     const [userState, setUserState] = useState(() => {
         console.log('StoreProvider initializing state');
-        const saved = localStorage.getItem('syndicate_user');
+        const saved = localStorage.getItem('syndicate_user_v2');
         return saved ? JSON.parse(saved) : INITIAL_USER_STATE;
     });
 
@@ -19,7 +19,7 @@ export const StoreProvider = ({ children }) => {
 
     // Persist to LocalStorage whenever state changes
     useEffect(() => {
-        localStorage.setItem('syndicate_user', JSON.stringify(userState));
+        localStorage.setItem('syndicate_user_v2', JSON.stringify(userState));
     }, [userState]);
 
     // Actions

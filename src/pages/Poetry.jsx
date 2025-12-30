@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BOOKS } from '../data/mockData';
+import { BOOKS, POEMS } from '../data/mockData';
 import BookCard from '../components/BookCard';
 import { Sparkles, Library } from 'lucide-react';
 
@@ -29,7 +29,7 @@ const Poetry = () => {
     }, []);
 
     // Mix live poems with some mock data for better initial visual
-    const allTitles = poems.length > 0 ? poems : Array(12).fill(BOOKS).flat().slice(0, 12);
+    const allTitles = poems.length > 0 ? poems : POEMS;
     const trendingBooks = allTitles.slice(0, 4);
 
     return (

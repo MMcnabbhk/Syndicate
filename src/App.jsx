@@ -7,9 +7,11 @@ import BookProfile from './pages/BookProfile';
 import Reader from './pages/Reader';
 import Dashboard from './pages/Dashboard';
 import Library from './pages/Library';
+import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Stories from './pages/Stories';
 import Poetry from './pages/Poetry';
+
 
 import ReaderProfileSetup from './pages/ReaderProfileSetup';
 import CreatorProfileSetup from './pages/CreatorProfileSetup';
@@ -21,6 +23,7 @@ import AudioBooksList from './pages/AudioBooksList';
 import PoetryCollections from './pages/PoetryCollections';
 import Discover from './pages/Discover';
 import AuthorProfile from './pages/AuthorProfile';
+import AuthorContribution from './pages/AuthorContribution';
 import { StoreProvider } from './context/StoreContext';
 
 function App() {
@@ -43,6 +46,7 @@ function App() {
             <Route path="syndicate-content" element={<ContentSyndication />} />
             <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
             <Route path="book/:id" element={<BookProfile />} />
+            <Route path="book/:id/contribute" element={<AuthorContribution />} />
             <Route path="author/:id" element={<AuthorProfile />} />
             <Route path="read/:bookId/:chapterId" element={<Reader />} />
             <Route path="dashboard" element={<Dashboard />} />

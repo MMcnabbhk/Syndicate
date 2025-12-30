@@ -8,16 +8,16 @@ const FAQ = () => {
             id: "general",
             items: [
                 {
-                    question: "What is Syndicate Direct?",
-                    answer: "Syndicate Direct is a content syndication platform designed to connect authors with their readers. We solve the discovery problem found on major platforms by allowing authors to share stories, chapters, and poems directly with their friends, family, and fans. It is a space to profile your interests, build affinity with your audience, and distribute your work on your own terms."
+                    question: "What is Syndicate?",
+                    answer: "Syndicate is a content syndication platform designed to connect authors with their readers. We solve the discovery problem found on major platforms by allowing authors to share stories, chapters, and poems directly with their friends, family, and fans. It is a space to profile your interests, build affinity with your audience, and distribute your work on your own terms."
                 },
                 {
-                    question: "Who founded Syndicate.direct?",
-                    answer: "Syndicate.direct was founded by Michael James, an author and technology executive. James created the platform after his own experience publishing Tyger: A Story of Survival (4.4 stars on Amazon). His personal frustrations with the difficulty of gaining visibility for his work on major retailers led him to build a solution that empowers authors to connect directly with their audience."
+                    question: "Who founded Syndicate?",
+                    answer: "Syndicate was founded by Michael James, an author and technology executive. James created the platform after his own experience publishing Tyger: A Story of Survival (4.4 stars on Amazon). His personal frustrations with the difficulty of gaining visibility for his work on major retailers led him to build a solution that empowers authors to connect directly with their audience."
                 },
                 {
                     question: "How does the release model work?",
-                    answer: "Unlike traditional retailers where a book is purchased once, Syndicate Direct allows authors to \"drip\" content. You can release your work—whether it’s a novel, a short story collection, or a series of poems—on a Daily or Weekly basis, or offer it as a Full Download. Unlike Patreon or Substack, the syndication cycle begins from the date of the user request. In this way the reader receives the content in the order that it was intended."
+                    answer: "Unlike traditional retailers where a book is purchased once, Syndicate allows authors to \"drip\" content. You can release your work—whether it’s a novel, a short story collection, or a series of poems—on a Daily or Weekly basis, or offer it as a Full Download. Unlike Patreon or Substack, the syndication cycle begins from the date of the user request. In this way the reader receives the content in the order that it was intended."
                 },
                 {
                     question: "Who is this platform for?",
@@ -44,7 +44,7 @@ const FAQ = () => {
                 },
                 {
                     question: "Can I use AI-generated content?",
-                    answer: "Syndicate Direct screens all submissions for AI-generated text. To maintain the integrity of human artistry on our platform, we may elect not to accept content flagged as AI-generated."
+                    answer: "Syndicate screens all submissions for AI-generated text. To maintain the integrity of human artistry on our platform, we may elect not to accept content flagged as AI-generated."
                 },
                 {
                     question: "How does scheduling work?",
@@ -52,7 +52,7 @@ const FAQ = () => {
                 },
                 {
                     question: "How do I find readers?",
-                    answer: "We provide tools for you to invite friends, family, and your existing network via direct links or through the system’s invitation feature. Syndicate Direct is built to help you strengthen relationships with the people who actually read your books, turning casual readers into loyal fans."
+                    answer: "We provide tools for you to invite friends, family, and your existing network via direct links or through the system’s invitation feature. Syndicate is built to help you strengthen relationships with the people who actually read your books, turning casual readers into loyal fans."
                 }
             ]
         },
@@ -67,7 +67,7 @@ const FAQ = () => {
                 },
                 {
                     question: "What are the fees?",
-                    answer: "Syndicate Direct charges a flat Service Fee of $3.00 per month from your earnings. How it works: We deduct the first $3.00 of contributions you receive each month to cover platform maintenance and hosting. Any contributions earned above that first $3.00 go directly to your author account balance."
+                    answer: "Syndicate charges a flat Service Fee of $3.00 per month from your earnings. How it works: We deduct the first $3.00 of contributions you receive each month to cover platform maintenance and hosting. Any contributions earned above that first $3.00 go directly to your author account balance."
                 },
                 {
                     question: "Are there any additional fees?",
@@ -90,11 +90,11 @@ const FAQ = () => {
             items: [
                 {
                     question: "Is the content free?",
-                    answer: "Yes, the content is accessible to read. Syndicate Direct operates on an appreciation model. You can read the stories, chapters, and poems freely, and then choose to support the authors you love with voluntary contributions."
+                    answer: "Yes, the content is accessible to read. Syndicate operates on an appreciation model. You can read the stories, chapters, and poems freely, and then choose to support the authors you love with voluntary contributions."
                 },
                 {
                     question: "Why should I contribute?",
-                    answer: "Direct contributions allow authors to keep creating. Unlike major publishing platforms that take a massive cut of every sale, Syndicate Direct ensures that after a small monthly service fee, your specific contribution goes to the author's balance."
+                    answer: "Direct contributions allow authors to keep creating. Unlike major publishing platforms that take a massive cut of every sale, Syndicate ensures that after a small monthly service fee, your specific contribution goes to the author's balance."
                 }
             ]
         }
@@ -117,10 +117,10 @@ const FAQ = () => {
         if (!text) return text;
 
         // Split by the target phrases to preserve them in the parts
-        const parts = text.split(/(Syndicate\.direct|Syndicate Direct|Syndicate)/g);
+        const parts = text.split(/(Syndicate)/g);
 
         return parts.map((part, i) => {
-            if (part === 'Syndicate.direct' || part === 'Syndicate Direct' || part === 'Syndicate') {
+            if (part === 'Syndicate') {
                 return (
                     <span key={i} className="font-bold" style={{ color: '#cc5500' }}>
                         {part}
