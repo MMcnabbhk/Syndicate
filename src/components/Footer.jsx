@@ -26,7 +26,7 @@ const Footer = () => {
                     <div className="hidden md:block w-px bg-zinc-800 h-full self-stretch"></div>
 
                     {/* Emails */}
-                    <div className="flex flex-col gap-4 justify-center py-2">
+                    <div className="flex flex-col gap-4 justify-start">
                         <div>
                             <span className="block text-zinc-500 text-sm mb-1 uppercase tracking-wider font-bold">For Authors</span>
                             <a href="mailto:Authorsupport@syndicate.direct" className="text-white hover:text-violet-400 transition-colors block text-[11pt] font-medium">Authorsupport@syndicate.direct</a>
