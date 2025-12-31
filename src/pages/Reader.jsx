@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { BOOKS, CHAPTERS } from '../data/mockData';
+import { useNovel, useChapters } from '../hooks/useData';
 import { useStore } from '../context/StoreContext';
 import { useRelativeSchedule } from '../hooks/useRelativeSchedule';
-import { ArrowLeft, Settings, Headphones, Star, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Settings, Headphones, Star, CheckCircle, Loader2 } from 'lucide-react';
 
 const Reader = () => {
     const { bookId, chapterId } = useParams();
@@ -16,21 +16,26 @@ const Reader = () => {
     const [rating, setRating] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
 
-    const book = BOOKS.find(b => b.id === bookId);
-    const chapters = CHAPTERS[bookId] || [];
-    const currentChapterIndex = chapters.findIndex(c => c.id === chapterId);
-    const currentChapter = chapters[currentChapterIndex];
+    // Fetch data from SQL
+    const { data: book, loading: bookLoading } = useNovel(bookId);
+    const { data: chapters, loading: chaptersLoading } = useChapters(bookId);
+
+    const isLoading = bookLoading || chaptersLoading;
     const subscription = getSubscription(bookId);
     const schedule = useRelativeSchedule(book, subscription);
 
+    // Find current chapter from fetch data
+    const currentChapter = chapters?.find(c => c.id === chapterId);
+    const currentChapterIndex = chapters?.findIndex(c => c.id === chapterId);
+
     // Validation: Is chapter unlocked?
-    const isUnlocked = schedule && subscription ? schedule.checkUnlocked(currentChapter.sequence) : false;
+    const isUnlocked = schedule && subscription && currentChapter ? schedule.checkUnlocked(currentChapter.sequence) : false;
 
     useEffect(() => {
-        if (!subscription) {
+        if (!isLoading && !subscription) {
             navigate(`/book/${bookId}`); // Redirect if not subscribed
         }
-    }, [subscription, bookId, navigate]);
+    }, [subscription, bookId, navigate, isLoading]);
 
     const handleComplete = () => {
         if (rating === 0) return; // Must rate
@@ -38,9 +43,19 @@ const Reader = () => {
         updateProgress(bookId, currentChapter.sequence);
     };
 
-    const nextChapter = chapters[currentChapterIndex + 1];
+    const nextChapter = chapters && currentChapterIndex !== -1 ? chapters[currentChapterIndex + 1] : null;
 
-    if (!subscription || !book || !currentChapter) return <div className="p-10 text-center">Loading...</div>;
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-[#333333]">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!book || !currentChapter) {
+        return <div className="p-10 text-center text-white bg-[#333333] min-h-screen">Chapter not found</div>;
+    }
 
     if (!isUnlocked) {
         return (

@@ -153,7 +153,7 @@ const Layout = () => {
             )}
 
             {/* Spacer */}
-            <div style={{ height: '20px', width: '100%' }} />
+            <div style={{ height: '40px', width: '100%' }} />
 
             {/* Main Content */}
             <main className="flex-1">

@@ -6,7 +6,7 @@ import { Star, Clock } from 'lucide-react';
 const BookCard = ({ book, variant }) => {
     return (
         <Link to={`/book/${book.id}`} className="group relative block bg-transparent hover:translate-y-[-4px] transition-transform duration-300">
-            <div className="aspect-[2/3] relative shadow-md group-hover:shadow-xl group-hover:shadow-violet-500/10 transition-shadow duration-300">
+            <div className="aspect-[2/3] relative shadow-md group-hover:shadow-xl group-hover:shadow-violet-500/10 transition-shadow duration-300" style={{ marginBottom: '10px' }}>
                 <img
                     src={book.coverImage}
                     alt={book.title}

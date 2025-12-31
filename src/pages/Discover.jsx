@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Facebook, Instagram, Twitter, Music, Filter } from 'lucide-react';
-
-const CATEGORIES = [
-    "All",
-    "Literature & Fiction",
-    "Biography & Memoirs",
-    "Thriller & Suspense",
-    "Romance",
-    "Fantasy",
-    "Horror",
-    "Sci-fi",
-    "Adult"
-];
+import { ChevronRight, Facebook, Instagram, Twitter, Music, Filter, Play, Star, Book, Headphones, PenTool, Loader2 } from 'lucide-react';
+import { useAuthors } from '../hooks/useData';
 
 const CONTENT_TYPES = [
     "All",
@@ -23,43 +12,53 @@ const CONTENT_TYPES = [
 ];
 
 const Discover = () => {
-    const [activeCategory, setActiveCategory] = useState("All");
     const [activeType, setActiveType] = useState("All");
-    const [authors, setAuthors] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: authors, loading, error } = useAuthors();
 
-    useEffect(() => {
-        setLoading(true);
-        fetch('/api/authors')
-            .then(res => res.json())
-            .then(data => {
-                setAuthors(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }, []);
+    // 1. FILTER: By Content Type
+    // 2. EXCLUDE: No Profile Image
+    // 3. SORT: Alphabetical by Last Name
+    const filteredSortedAuthors = (authors || [])
+        .filter(author => {
+            // Exclusion: Must have profile image
+            if (!author.profile_image_url) return false;
 
-    // Fetch works for all authors to enable filtering (in real app, use a server-side filter endpoint)
-    // For this prototype, if authors is empty, we'll try to show something or handle loading
-    const filteredAuthors = authors.filter(author => {
-        let passesCategory = activeCategory === "All";
-        if (!passesCategory && author.genre) {
-            passesCategory = author.genre.toLowerCase().includes(activeCategory.toLowerCase());
-        }
+            // Filter: By Content Type
+            let passesType = activeType === "All";
+            if (!passesType) {
+                const type = activeType.toLowerCase();
+                // This logic might need adjustment based on real SQL data fields
+                // SQL should return counts or we might need to fetch works for each author?
+                // For now, assume simpler filtering or we rely on explicit counts if available.
+                // Since our adapter passes everything through, let's check for counts.
+                if (type === 'novels') passesType = (author.novel_count > 0);
+                else if (type === 'poetry') passesType = (author.poem_count > 0 || author.collection_count > 0);
+                else if (type === 'short fiction') passesType = (author.story_count > 0);
+                else if (type === 'audiobooks') passesType = (author.audiobook_count > 0);
+            }
+            return passesType;
+        })
+        .sort((a, b) => {
+            // Sort: Alphabetical by Last Name
+            const lastNameA = a.name.split(' ').pop();
+            const lastNameB = b.name.split(' ').pop();
+            return lastNameA.localeCompare(lastNameB);
+        });
 
-        let passesType = activeType === "All";
-        if (!passesType && passesCategory) {
-            const type = activeType.toLowerCase();
-            if (type === 'novels') passesType = author.novel_count > 0;
-            else if (type === 'poetry') passesType = author.poem_count > 0 || author.collection_count > 0;
-            else if (type === 'short fiction') passesType = author.story_count > 0;
-            else if (type === 'audiobooks') passesType = author.audiobook_count > 0;
-        }
+    const getAuthorWorks = (author) => {
+        // If author has works attached (which useAuthors/DB might not provide by default for list),
+        // we might leave this empty or update backend to include recent works.
+        // For now, let's return empty if not present to avoid crashes.
+        return [];
+    };
 
-        return passesCategory && passesType;
-    });
-
-    if (loading) return <div className="p-20 text-center text-zinc-500 animate-pulse font-bold tracking-widest uppercase">Initializing Discovery Layer...</div>;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="pb-20 pt-10 animate-fade-in">
@@ -67,34 +66,17 @@ const Discover = () => {
                 <div className="flex flex-col items-center gap-6">
                     {/* Content Type Submenu */}
                     <div className="flex flex-wrap gap-2 items-center justify-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mr-2">Type:</span>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mr-2">Filter:</span>
                         {CONTENT_TYPES.map((type) => (
                             <button
                                 key={type}
                                 onClick={() => setActiveType(type)}
-                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border ${activeType === type
+                                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-300 border ${activeType === type
                                     ? 'bg-white text-black border-white shadow-xl shadow-white/10'
                                     : 'bg-zinc-900 text-zinc-500 border-white/5 hover:border-white/20 hover:text-white'
                                     }`}
                             >
                                 {type}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Genre Submenu */}
-                    <div className="flex flex-wrap gap-3 items-center justify-center">
-                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mr-2">Genre:</span>
-                        {CATEGORIES.map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => setActiveCategory(cat)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat
-                                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/20'
-                                    : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-white/5'
-                                    }`}
-                            >
-                                {cat}
                             </button>
                         ))}
                     </div>
@@ -119,90 +101,105 @@ const Discover = () => {
                 <div className="h-[40px]"></div>
 
                 <div className="flex flex-col gap-24">
-                    {filteredAuthors.map((author, index) => {
-                        const isEven = index % 2 === 0;
+                    {filteredSortedAuthors.map((author, index) => {
+                        const works = getAuthorWorks(author);
 
                         return (
-                            <div key={author.id} className={`flex flex-col md:flex-row gap-10 md:gap-16 items-start ${!isEven ? 'md:flex-row-reverse' : ''}`}>
-                                {/* Author Image (Left or Right) */}
-                                <div className="w-full md:w-1/3 max-w-[250px] shrink-0 mx-auto md:mx-0">
-                                    <Link to={`/author/${author.id}`} className="block aspect-[3/4] bg-zinc-800 rounded-3xl overflow-hidden shadow-2xl relative group cursor-pointer ring-1 ring-white/5 hover:ring-violet-500/50 transition-all duration-700">
-                                        {author.profile_image_url ? (
-                                            <img src={author.profile_image_url} alt={author.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center">
-                                                <span className="text-8xl font-black text-white/5">{author.name.charAt(0)}</span>
-                                            </div>
-                                        )}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity"></div>
-                                        <div className="absolute bottom-6 left-6 z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                                            <span className="text-white text-xs font-black tracking-[0.3em] uppercase">Enter Profile</span>
-                                        </div>
-                                    </Link>
-                                </div>
+                            <div key={author.id} className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 md:p-8 hover:bg-zinc-900/60 transition-colors duration-500">
+                                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-                                {/* Author Details */}
-                                <div className="flex-1 pt-2">
-                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-                                        {/* Name as Headline Link */}
-                                        <Link to={`/author/${author.id}`} className="inline-block group">
-                                            <h3 className="text-2xl md:text-4xl font-black text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-zinc-400 transition-all duration-300 leading-tight">
-                                                {author.name}
-                                            </h3>
+                                    {/* Left Column: Photo & Video */}
+                                    <div className="w-full lg:w-52 shrink-0 flex flex-col gap-6">
+                                        {/* Author Photo */}
+                                        <Link to={`/author/${author.id}`} className="block aspect-[2/3] rounded-3xl overflow-hidden shadow-2xl relative ring-1 ring-white/10 group cursor-pointer">
+                                            <img src={author.profile_image_url} alt={author.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                                            <div className="absolute bottom-4 left-4">
+                                                <h3 className="text-white text-2xl font-black leading-tight mb-1">{author.name}</h3>
+                                                {author.genre && <span className="text-violet-400 font-bold text-sm tracking-wide uppercase">{author.genre}</span>}
+                                            </div>
                                         </Link>
 
-                                        {/* Genre Badge */}
-                                        {author.genre && (
-                                            <span className="px-3 py-1 bg-white/10 text-violet-300 text-sm font-bold uppercase tracking-wider rounded-full backdrop-blur-sm self-start md:self-auto mb-2 md:mb-4 whitespace-nowrap border border-white/5">
-                                                {author.genre}
-                                            </span>
-                                        )}
+
                                     </div>
 
-                                    {/* Social Links */}
-                                    {author.socials && (
-                                        <div className="flex items-center gap-3 mb-6">
-                                            {author.socials.facebook && (
-                                                <a href={author.socials.facebook} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
-                                                    <Facebook size={18} />
-                                                </a>
-                                            )}
-                                            {author.socials.x && (
-                                                <a href={author.socials.x} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
-                                                    {/* Custom X Icon */}
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide">
-                                                        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {author.socials.instagram && (
-                                                <a href={author.socials.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
-                                                    <Instagram size={18} />
-                                                </a>
-                                            )}
-                                            {author.socials.tiktok && (
-                                                <a href={author.socials.tiktok} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
-                                                    <Music size={18} />
-                                                </a>
-                                            )}
+                                    {/* Right Column: Bio & Works */}
+                                    <div className="flex-1 flex flex-col">
+
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div>
+                                                <Link to={`/author/${author.id}`} className="group inline-block">
+                                                    <h2 className="text-3xl font-bold text-white group-hover:text-violet-400 transition-colors hidden lg:block">{author.name}</h2>
+                                                </Link>
+                                                {author.genre && <span className="text-violet-400 font-bold text-sm tracking-wide uppercase block mt-1">{author.genre}</span>}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {/* Socials */}
+                                                {author.socials && Object.entries(author.socials).map(([platform, url]) => (
+                                                    url && (
+                                                        <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors">
+                                                            {platform === 'x' ? <span className="font-bold text-xs">𝕏</span> :
+                                                                platform === 'instagram' ? <Instagram size={16} /> :
+                                                                    platform === 'facebook' ? <Facebook size={16} /> : <Music size={16} />}
+                                                        </a>
+                                                    )
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
 
-                                    {/* Description */}
-                                    <p className="text-xl text-zinc-300 mb-10 leading-relaxed max-w-2xl font-light">
-                                        {author.bio || author.description}
-                                    </p>
+                                        {/* Bio */}
+                                        <div className="prose prose-invert max-w-none text-zinc-300 mb-10 leading-relaxed font-light min-h-[150px]">
+                                            <p className="line-clamp-6">{author.bio || author.description}</p>
+                                        </div>
 
-                                    <Link to={`/author/${author.id}`} className="inline-flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-violet-600/20 text-white font-bold rounded-full border border-white/5 hover:border-violet-500/30 transition-all">
-                                        Explore Creator Works <ChevronRight size={16} />
-                                    </Link>
+                                        {/* Last 4 Works */}
+                                        <div className="mt-auto">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Recent Works</h4>
+
+                                            </div>
+
+                                            <div className="flex flex-col gap-2">
+                                                {works.map(work => (
+                                                    <Link key={work.id} to={`/book/${work.id}`} className="group flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg border border-white/5 hover:bg-zinc-800 hover:border-violet-500/30 transition-all">
+                                                        <span className="text-zinc-300 font-medium group-hover:text-white transition-colors">{work.title}</span>
+                                                        <div className="flex items-center gap-3">
+                                                            {/* Type Icon */}
+                                                            <span className={`p-1.5 rounded-md ${(work.id.startsWith('ab') || work.type === 'Audiobook') ? 'bg-orange-500/10 text-orange-400' :
+                                                                (work.id.startsWith('pm') || work.type === 'Poem') ? 'bg-pink-500/10 text-pink-400' :
+                                                                    'bg-blue-500/10 text-blue-400'
+                                                                }`}>
+                                                                {(work.id.startsWith('ab') || work.type === 'Audiobook') ? <Headphones size={14} /> :
+                                                                    (work.id.startsWith('pm') || work.type === 'Poem') ? <PenTool size={14} /> :
+                                                                        <Book size={14} />}
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                                {works.length === 0 && (
+                                                    <div className="text-center py-4 border border-dashed border-zinc-800 rounded-lg">
+                                                        <span className="text-zinc-600 text-sm">No recent works listed.</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
                         );
                     })}
+
+                    {filteredSortedAuthors.length === 0 && (
+                        <div className="text-center py-20">
+                            <h3 className="text-2xl font-bold text-zinc-400 mb-2">No Authors Found</h3>
+                            <p className="text-zinc-600">Try adjusting your filters or check back later.</p>
+                        </div>
+                    )}
                 </div>
             </section>
-        </div>
+        </div >
     );
 };
 

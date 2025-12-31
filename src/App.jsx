@@ -52,6 +52,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />
+            <Route path="about" element={<About />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

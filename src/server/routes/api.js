@@ -168,6 +168,7 @@ router.put('/authors/:id', update(Author));
 router.delete('/authors/:id', remove(Author));
 
 // Combined Profile Data endpoint
+// Combined Profile Data endpoint
 router.get('/authors/:id/profile', async (req, res) => {
     try {
         const author = await Author.findById(req.params.id);
@@ -184,11 +185,11 @@ router.get('/authors/:id/profile', async (req, res) => {
         ]);
 
         const authorWorks = {
-            poems: poems.filter(p => p.author_id === parseInt(req.params.id)),
-            stories: stories.filter(s => s.author_id === parseInt(req.params.id)),
-            audiobooks: audiobooks.filter(a => a.author_id === parseInt(req.params.id)),
-            collections: collections.filter(c => c.author_id === parseInt(req.params.id)),
-            novels: novels.filter(n => n.author_id === parseInt(req.params.id))
+            poems: poems.filter(p => p.author_id == req.params.id),
+            stories: stories.filter(s => s.author_id == req.params.id),
+            audiobooks: audiobooks.filter(a => a.author_id == req.params.id),
+            collections: collections.filter(c => c.author_id == req.params.id),
+            novels: novels.filter(n => n.author_id == req.params.id)
         };
 
         res.json({ author, works: authorWorks });

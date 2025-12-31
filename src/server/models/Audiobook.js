@@ -1,8 +1,10 @@
 // src/server/models/Audiobook.js
 import db from '../db.js';
 
+import db from '../db.js';
+
 export default class Audiobook {
-    constructor({ id, author_id, title, cover_image_url, narrator, duration_seconds, status, published_at }) {
+    constructor({ id, author_id, title, cover_image_url, narrator, duration_seconds, status, published_at, price_monthly }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -15,8 +17,13 @@ export default class Audiobook {
     }
 
     static async findAll() {
-        const { rows } = await db.query('SELECT * FROM audiobooks ORDER BY published_at DESC');
-        return rows.map(row => new Audiobook(row));
+        try {
+            const { rows } = await db.query('SELECT * FROM audiobooks');
+            return rows.map(row => new Audiobook(row));
+        } catch (err) {
+            console.error("Database error in Audiobook.findAll:", err.message);
+            return [];
+        }
     }
 
     static async findById(id) {

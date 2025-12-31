@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { BOOKS, SHORT_STORIES } from '../data/mockData';
+import React, { useState } from 'react';
+import { useShortStories } from '../hooks/useData';
+import { useShortStories } from '../hooks/useData';
 import BookCard from '../components/BookCard';
-import { Sparkles, Library } from 'lucide-react';
+import { Sparkles, Library, Loader2 } from 'lucide-react';
 
 const CATEGORIES = [
     "Fiction",
@@ -16,21 +17,26 @@ const CATEGORIES = [
 
 const Stories = () => {
     const [activeCategory, setActiveCategory] = useState("Fiction");
-    const [stories, setStories] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: stories, loading, error } = useShortStories();
 
-    useEffect(() => {
-        fetch('/api/short-fiction')
-            .then(res => res.json())
-            .then(data => {
-                setStories(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }, []);
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container py-20 text-center">
+                <p className="text-red-500">Error loading stories: {error}</p>
+            </div>
+        );
+    }
 
     // Mix live stories with some mock data for better initial visual
-    const allTitles = stories.length > 0 ? stories : SHORT_STORIES;
+    const allTitles = stories || (SHORT_STORIES.length > 0 ? SHORT_STORIES : []);
     const trendingBooks = allTitles.slice(0, 4);
 
     return (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { BOOKS } from '../data/mockData';
+import { useNovels } from '../hooks/useData';
 import BookCard from '../components/BookCard';
-import { Sparkles, Library as LibraryIcon } from 'lucide-react';
+import { Sparkles, Library as LibraryIcon, Loader2 } from 'lucide-react';
 
 const CATEGORIES = [
     "Literature & Fiction",
@@ -14,13 +14,29 @@ const CATEGORIES = [
     "Adult"
 ];
 
-const Library = () => { // Renamed component to match filename/existing usage
+const Library = () => {
     const [activeCategory, setActiveCategory] = useState("Literature & Fiction");
+    const { data: novels, loading, error } = useNovels();
 
-    // Mock data simulation: In a real app, this would filter based on category
-    // Using same logic as AudioBooks: 4 trending, 12 all titles
-    const trendingBooks = Array(4).fill(BOOKS).flat().slice(0, 4);
-    const allTitles = Array(12).fill(BOOKS).flat().slice(0, 12);
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
+
+    // Filter books by category (loose matching) or show all if category not found? 
+    // Ideally we match genre. For now, since genres might vary, let's try to filter.
+    const filteredBooks = novels ? novels.filter(book =>
+        book.genre && book.genre.toLowerCase().includes(activeCategory.split(' ')[0].toLowerCase())
+    ) : [];
+
+    // Fallback: If no books match perfectly (e.g. data hasn't been tagged), show all or random
+    const displayBooks = filteredBooks.length > 0 ? filteredBooks : (novels || []);
+
+    const trendingBooks = displayBooks.slice(0, 4);
+    const allTitles = displayBooks;
 
     return (
         <div className="pb-20 pt-10">

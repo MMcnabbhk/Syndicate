@@ -14,8 +14,13 @@ export default class PoetryCollection {
     }
 
     static async findAll() {
-        const { rows } = await db.query('SELECT * FROM poetry_collections ORDER BY published_at DESC');
-        return rows.map(row => new PoetryCollection(row));
+        try {
+            const { rows } = await db.query('SELECT * FROM poetry_collections ORDER BY published_at DESC');
+            return rows.map(row => new PoetryCollection(row));
+        } catch (err) {
+            console.warn("Database error in PoetryCollection.findAll, returning empty:", err.message);
+            return [];
+        }
     }
 
     static async findById(id) {

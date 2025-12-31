@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BOOKS } from '../data/mockData';
+import { useAudiobooks, useNovels } from '../hooks/useData';
 import BookCard from '../components/BookCard';
 import { Sparkles, Library } from 'lucide-react';
 
@@ -15,22 +15,14 @@ const CATEGORIES = [
 ];
 
 const AudioBooks = () => {
+    const { data: audiobooks, loading, error } = useAudiobooks();
     const [activeCategory, setActiveCategory] = useState("Literature & Fiction");
-    const [audiobooks, setAudiobooks] = useState([]);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetch('/api/audiobooks')
-            .then(res => res.json())
-            .then(data => {
-                setAudiobooks(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }, []);
+    if (loading) return <div className="container py-20 text-center text-zinc-500">Loading audiobooks...</div>;
+    if (error) return <div className="container py-20 text-center text-red-500">Error: {error}</div>;
 
-    // Mix live audiobooks with some mock data for better initial visual
-    const allTitles = audiobooks.length > 0 ? audiobooks : Array(12).fill(BOOKS).flat().slice(0, 12);
+    // Use audiobooks from API
+    const allTitles = audiobooks || [];
     const trendingBooks = allTitles.slice(0, 4);
 
     return (

@@ -14,8 +14,14 @@ export default class Novel {
     }
 
     static async findAll() {
-        const { rows } = await db.query('SELECT * FROM novels');
-        return rows.map(row => new Novel(row));
+        try {
+            const { rows } = await db.query('SELECT * FROM novels');
+            return rows.map(row => new Novel(row));
+        } catch (err) {
+            console.error("Database error in Novel.findAll:", err.message);
+            // Return empty array instead of mock data since we've synced to SQL
+            return [];
+        }
     }
 
     static async findById(id) {

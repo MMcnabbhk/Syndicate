@@ -1,6 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { INITIAL_USER_STATE } from '../data/mockData';
+
+const INITIAL_USER_STATE = {
+    subscriptions: [],
+    walletBalance: 50.00,
+    role: 'reader',
+    isAuthenticated: false
+};
+
 
 const StoreContext = createContext();
 
@@ -17,7 +24,28 @@ export const StoreProvider = ({ children }) => {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
 
-    // Persist to LocalStorage whenever state changes
+    // Check session on mount
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const res = await fetch('http://localhost:4000/api/auth/me'); // Make sure to use correct API URL
+                const data = await res.json();
+                if (data.isAuthenticated) {
+                    setUserState(prev => ({
+                        ...prev,
+                        isAuthenticated: true,
+                        role: data.user.role || 'reader',
+                        // You might want to merge other user data here
+                    }));
+                }
+            } catch (err) {
+                console.error("Session check failed", err);
+            }
+        };
+        checkSession();
+    }, []);
+
+    // Persist to LocalStorage whenever state changes (keep this for preferences/subscriptions if not fully migrated)
     useEffect(() => {
         localStorage.setItem('syndicate_user_v2', JSON.stringify(userState));
     }, [userState]);
@@ -60,7 +88,12 @@ export const StoreProvider = ({ children }) => {
         setIsLoginModalOpen(false);
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            await fetch('http://localhost:4000/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+            console.error("Logout error", e);
+        }
         setUserState(prev => ({ ...prev, isAuthenticated: false }));
     };
 

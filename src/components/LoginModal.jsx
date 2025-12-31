@@ -21,7 +21,8 @@ const LoginModal = () => {
     };
 
     const handleSocialLogin = () => {
-        login();
+        // Redirect to backend OAuth route
+        window.location.href = 'http://localhost:4000/api/auth/google';
     };
 
     return (
@@ -99,11 +100,11 @@ const LoginModal = () => {
                             />
                         </button>
 
-                        {/* Microsoft-style (4 squares like in reference) */}
+                        {/* Microsoft-style */}
                         <button
-                            onClick={handleSocialLogin}
+                            onClick={() => window.location.href = 'http://localhost:4000/api/auth/microsoft'}
                             className="flex-1 bg-[#1a1a1a] border border-zinc-800 hover:border-zinc-600 rounded-lg h-[44px] flex items-center justify-center transition-colors"
-                            title="Continue with Facebook"
+                            title="Continue with Microsoft"
                         >
                             <svg className="w-[18px] h-[18px]" viewBox="0 0 21 21" fill="none">
                                 <rect x="1" y="1" width="9" height="9" fill="#F25022" />
@@ -115,7 +116,7 @@ const LoginModal = () => {
 
                         {/* Apple */}
                         <button
-                            onClick={handleSocialLogin}
+                            onClick={() => window.location.href = 'http://localhost:4000/api/auth/apple'}
                             className="flex-1 bg-[#1a1a1a] border border-zinc-800 hover:border-zinc-600 rounded-lg h-[44px] flex items-center justify-center transition-colors"
                             title="Continue with Apple"
                         >

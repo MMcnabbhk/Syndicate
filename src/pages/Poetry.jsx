@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { BOOKS, POEMS } from '../data/mockData';
+import React, { useState } from 'react';
+import { usePoems } from '../hooks/useData';
+import { usePoems } from '../hooks/useData';
 import BookCard from '../components/BookCard';
-import { Sparkles, Library } from 'lucide-react';
+import { Sparkles, Library, Loader2 } from 'lucide-react';
 
 const CATEGORIES = [
     "Free Verse",
@@ -15,21 +16,26 @@ const CATEGORIES = [
 
 const Poetry = () => {
     const [activeCategory, setActiveCategory] = useState("Free Verse");
-    const [poems, setPoems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: poems, loading, error } = usePoems();
 
-    useEffect(() => {
-        fetch('/api/poems')
-            .then(res => res.json())
-            .then(data => {
-                setPoems(data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }, []);
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container py-20 text-center">
+                <p className="text-red-500">Error loading poems: {error}</p>
+            </div>
+        );
+    }
 
     // Mix live poems with some mock data for better initial visual
-    const allTitles = poems.length > 0 ? poems : POEMS;
+    const allTitles = poems || (POEMS.length > 0 ? POEMS : []);
     const trendingBooks = allTitles.slice(0, 4);
 
     return (

@@ -7,7 +7,8 @@ export default class Author {
         this.user_id = user_id;
         this.name = name;
         this.bio = bio;
-        this.profile_image_url = profile_image_url;
+        this.profile_image_url = profile_image_url || null;
+        this.video_url = null; // Assuming not in DB yet or handled differently
         this.socials = typeof socials === 'string' ? JSON.parse(socials) : (socials || {});
         this.genre = genre;
         this.recommended_author_ids = typeof recommended_author_ids === 'string' ? JSON.parse(recommended_author_ids) : (recommended_author_ids || []);
@@ -22,22 +23,32 @@ export default class Author {
     }
 
     static async findAll() {
-        const sql = `
-            SELECT a.*, 
-            (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
-            (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
-            (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
-            (SELECT COUNT(*) FROM poetry_collections WHERE author_id = a.id) as collection_count,
-            (SELECT COUNT(*) FROM novels WHERE author_id = a.id) as novel_count
-            FROM authors a
-        `;
-        const { rows } = await db.query(sql);
-        return rows.map(row => new Author(row));
+        try {
+            const sql = `
+                SELECT a.*, 
+                (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
+                (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
+                (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
+                (SELECT COUNT(*) FROM poetry_collections WHERE author_id = a.id) as collection_count,
+                (SELECT COUNT(*) FROM novels WHERE author_id = a.id) as novel_count
+                FROM authors a
+            `;
+            const { rows } = await db.query(sql);
+            return rows.map(row => new Author(row));
+        } catch (err) {
+            console.error("Database error in Author.findAll:", err.message);
+            return [];
+        }
     }
 
     static async findById(id) {
-        const { rows } = await db.query('SELECT * FROM authors WHERE id = ?', [id]);
-        return rows.length ? new Author(rows[0]) : null;
+        try {
+            const { rows } = await db.query('SELECT * FROM authors WHERE id = ?', [id]);
+            if (rows.length) return new Author(rows[0]);
+        } catch (err) {
+            console.error("Database error in Author.findById:", err.message);
+        }
+        return null;
     }
 
     static async findByUserId(userId) {

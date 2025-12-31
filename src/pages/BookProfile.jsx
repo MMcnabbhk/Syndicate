@@ -1,10 +1,10 @@
-
 import React, { useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { BOOKS, CHAPTERS, ALL_DATA } from '../data/mockData'; // In real app, fetch from API
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNovel, useChapters } from '../hooks/useData';
+
 import { useStore } from '../context/StoreContext';
 import { useRelativeSchedule } from '../hooks/useRelativeSchedule';
-import { Calendar, Clock, Star, PlayCircle, Lock, BookOpen, Heart, Headphones, Radio } from 'lucide-react';
+import { Calendar, Clock, Star, PlayCircle, Lock, BookOpen, Heart, Headphones, Radio, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const BookProfile = () => {
@@ -12,12 +12,23 @@ const BookProfile = () => {
     const navigate = useNavigate();
     const { subscribeToBook, getSubscription } = useStore();
 
-    const book = ALL_DATA.find(b => b.id === id);
-    const chapters = CHAPTERS[id] || [];
+    // Fetch data from SQL
+    const { data: book, loading: bookLoading } = useNovel(id);
+    const { data: chapters, loading: chaptersLoading } = useChapters(id);
+
+    const isLoading = bookLoading || chaptersLoading;
     const subscription = getSubscription(id);
 
     // Use our custom hook to calculate unlock statuses
     const schedule = useRelativeSchedule(book, subscription);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
 
     if (!book) return <div className="container py-20 text-center">Book not found</div>;
 
@@ -74,7 +85,7 @@ const BookProfile = () => {
                     {/* Info */}
                     <div className="mt-4 flex-1 text-center md:text-left">
                         <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{book.title}</h1>
-                        <p className="text-xl text-zinc-400 mb-6">
+                        <p className="text-2xl text-zinc-400 mb-6">
                             by <span className="text-white font-medium">{book.author}</span>
                             {book.narrator && (
                                 <span className="block text-lg text-zinc-500 mt-1">Narrated by <span className="text-zinc-300">{book.narrator}</span></span>
@@ -136,7 +147,7 @@ const BookProfile = () => {
                             )}
 
                             <div className="space-y-4">
-                                {chapters.map((chapter, index) => {
+                                {(chapters || []).map((chapter, index) => {
                                     let status = 'locked';
                                     let unlockText = `Unlocks day ${index * book.frequencyInterval}`; // Approx for preview
 

@@ -1,17 +1,48 @@
 
 import React from 'react';
-import { BOOKS } from '../data/mockData';
+import { useNovels } from '../hooks/useData';
 import BookCard from '../components/BookCard';
-import { Sparkles, TrendingUp, Calendar } from 'lucide-react';
+import { Sparkles, TrendingUp, Calendar, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HomePage = () => {
-    const featuredBook = BOOKS[0];
-    const trendingBooks = Array(4).fill(BOOKS).flat().slice(0, 8); // 8 items = 2 rows
-    const newArrivalsBooks = Array(4).fill(BOOKS).flat().slice(0, 8); // 8 items = 2 rows
+    const { data: novels, loading, error } = useNovels();
+
+    if (novels && novels.length > 0) {
+        console.log('HomePage First Book:', JSON.stringify(novels[0], null, 2));
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container py-20 text-center">
+                <p className="text-red-500">Error loading books: {error}</p>
+            </div>
+        );
+    }
+
+    // Data is already adapted by the hook
+    const featuredBook = novels?.[0];
+    const trendingBooks = Array(4).fill(novels || []).flat().slice(0, 8);
+    const newArrivalsBooks = Array(4).fill(novels || []).flat().slice(0, 8);
+
+    if (!featuredBook) {
+        return (
+            <div className="container py-20 text-center">
+                <p className="text-zinc-400">No books available</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="pb-20">
+        <div className="pb-20 min-h-screen">
             {/* 30px space bar under navigation */}
             <div className="h-[30px] w-full"></div>
             {/* Hero Section */}

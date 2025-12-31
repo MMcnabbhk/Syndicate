@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, CreditCard, Lock, MapPin } from 'lucide-react';
-import { BOOKS } from '../data/mockData';
+import { ArrowLeft, Heart, CreditCard, Lock, MapPin, Loader2 } from 'lucide-react';
+import { useNovel } from '../hooks/useData';
 
 const US_STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -14,7 +14,7 @@ const US_STATES = [
 const AuthorContribution = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const book = BOOKS.find(b => b.id === id);
+    const { data: book, loading, error } = useNovel(id);
     const [amount, setAmount] = useState(5);
     const [customAmount, setCustomAmount] = useState('');
     const [note, setNote] = useState('');
@@ -44,6 +44,14 @@ const AuthorContribution = () => {
         });
         alert(`Redirecting to PayPal for contribution of $${displayAmount}...`);
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+            </div>
+        );
+    }
 
     if (!book) return <div className="container py-20 text-center text-white">Book not found</div>;
 

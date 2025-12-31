@@ -1,8 +1,10 @@
 // src/server/models/Poem.js
 import db from '../db.js';
 
+import db from '../db.js';
+
 export default class Poem {
-    constructor({ id, author_id, title, content_html, form, tags, status, published_at, cover_image_url }) {
+    constructor({ id, author_id, title, content_html, form, tags, status, published_at, cover_image_url, price_monthly }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -16,8 +18,28 @@ export default class Poem {
     }
 
     static async findAll() {
-        const { rows } = await db.query('SELECT * FROM poems ORDER BY published_at DESC');
-        return rows.map(row => new Poem(row));
+        let dbPoems = [];
+        try {
+            const { rows } = await db.query('SELECT * FROM poems ORDER BY published_at DESC');
+            dbPoems = rows.map(row => new Poem(row));
+        } catch (err) {
+            console.warn("Database error in Poem.findAll, using mock data only:", err.message);
+        }
+
+        const mockPoems = POEMS.map(p => new Poem({
+            id: p.id,
+            author_id: 'a1', // Assumption
+            title: p.title,
+            content_html: '',
+            form: 'Free Verse',
+            tags: [],
+            status: 'published',
+            published_at: p.releaseDate,
+            cover_image_url: p.coverImage,
+            price_monthly: p.priceFull
+        }));
+
+        return [...dbPoems, ...mockPoems];
     }
 
     static async findById(id) {
