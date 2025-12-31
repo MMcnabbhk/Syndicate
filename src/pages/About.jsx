@@ -69,7 +69,7 @@ const About = () => {
                         <ul className="list-disc space-y-2 text-zinc-400" style={{ paddingLeft: '40px' }}>
                             <li><strong>Serialization:</strong> Content is "dripped" on a Daily or Weekly basis, allowing readers to experience the story as it unfolds.</li>
                             <li><strong>Accessibility:</strong> Content is free to read or consume. We aspire to build a community accessible to all.</li>
-                            <li><strong>Direct Support:</strong> Readers make voluntary contributions which go directly to the author's balance (minus a small flat service fee).</li>
+                            <li><strong>Direct Support:</strong> Readers make voluntary contributions which go directly to the author's account (minus a small flat service fee).</li>
                         </ul>
                     </div>
                 </article>
