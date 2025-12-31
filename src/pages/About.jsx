@@ -54,7 +54,7 @@ const About = () => {
                     <h2 className="text-3xl font-bold text-white pl-6 border-l-4 border-fuchsia-500" style={{ marginBottom: '10px' }}>The Origin</h2>
                     <div className="pl-6 text-lg text-zinc-300 space-y-4 leading-relaxed" style={{ marginBottom: '16px' }}>
                         <p>
-                            Syndicate was founded by <strong>Michael James</strong>, an author and technology executive. James created the platform after his own experience publishing <em>Tyger: A Story of Survival</em> (4.4 stars on Amazon). His personal frustrations with the difficulty of gaining visibility for his work on major platforms led him to build a solution that empowers authors to own their distribution.
+                            Syndicate was founded by <strong>Michael James</strong>, an author and geek. James created the platform after his own experience publishing <em>Tyger: A Story of Survival</em> (4.4 stars on Amazon). His personal frustrations with the difficulty of gaining visibility for his work on major platforms led him to build a solution that empowers authors to own their distribution.
                         </p>
                     </div>
                 </article>
