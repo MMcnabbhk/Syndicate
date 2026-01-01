@@ -2,16 +2,40 @@
 import db from '../db.js';
 
 export default class Author {
-    constructor({ id, user_id, name, bio, profile_image_url, socials, genre, recommended_author_ids, poem_count, story_count, audiobook_count, collection_count, novel_count, balance }) {
+    constructor({
+        id, user_id, handle, name, bio, about, profile_image_url, socials, genre,
+        recommended_author_ids, amazon_url, goodreads_url, spotify_url,
+        profile_images, video_introductions, auto_responder_contributor,
+        auto_responder_fan, target_gender, target_age, target_income,
+        target_education, meta_pixel_id, ga_measurement_id, poem_count,
+        story_count, audiobook_count, collection_count, novel_count, balance
+    }) {
         this.id = id;
         this.user_id = user_id;
+        this.handle = handle || '';
         this.name = name;
         this.bio = bio;
+        this.about = about || bio;
         this.profile_image_url = profile_image_url || null;
-        this.video_url = null; // Assuming not in DB yet or handled differently
         this.socials = typeof socials === 'string' ? JSON.parse(socials) : (socials || {});
         this.genre = genre;
         this.recommended_author_ids = typeof recommended_author_ids === 'string' ? JSON.parse(recommended_author_ids) : (recommended_author_ids || []);
+
+        // New fields
+        this.amazonUrl = amazon_url || '';
+        this.goodreadsUrl = goodreads_url || '';
+        this.spotifyUrl = spotify_url || '';
+        this.profileImages = typeof profile_images === 'string' ? JSON.parse(profile_images) : (profile_images || []);
+        this.videoIntroductions = typeof video_introductions === 'string' ? JSON.parse(video_introductions) : (video_introductions || []);
+        this.autoResponderContributor = auto_responder_contributor || '';
+        this.autoResponderFan = auto_responder_fan || '';
+        this.targetGender = typeof target_gender === 'string' ? JSON.parse(target_gender) : (target_gender || []);
+        this.targetAge = typeof target_age === 'string' ? JSON.parse(target_age) : (target_age || []);
+        this.targetIncome = typeof target_income === 'string' ? JSON.parse(target_income) : (target_income || []);
+        this.targetEducation = typeof target_education === 'string' ? JSON.parse(target_education) : (target_education || []);
+
+        this.meta_pixel_id = meta_pixel_id || null;
+        this.ga_measurement_id = ga_measurement_id || null;
         this.balance = parseFloat(balance) || 0;
 
         // Metadata counts
@@ -57,31 +81,88 @@ export default class Author {
     }
 
     static async create(data) {
-        const { user_id, name, bio, profile_image_url, socials, genre, recommended_author_ids } = data;
-        const sql = `INSERT INTO authors (user_id, name, bio, profile_image_url, socials, genre, recommended_author_ids) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        const {
+            user_id, handle, name, bio, about, profile_image_url, socials, genre,
+            recommended_author_ids, amazonUrl, goodreadsUrl, spotifyUrl,
+            profileImages, videoIntroductions, autoResponderContributor,
+            autoResponderFan, targetGender, targetAge, targetIncome,
+            targetEducation, meta_pixel_id, ga_measurement_id
+        } = data;
+
+        const sql = `INSERT INTO authors (
+            user_id, handle, name, bio, about, profile_image_url, socials, genre, 
+            recommended_author_ids, amazon_url, goodreads_url, spotify_url, 
+            profile_images, video_introductions, auto_responder_contributor, 
+            auto_responder_fan, target_gender, target_age, target_income, 
+            target_education, meta_pixel_id, ga_measurement_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
         const result = await db.query(sql, [
             user_id,
+            handle || null,
             name,
             bio || null,
+            about || bio || null,
             profile_image_url || null,
             JSON.stringify(socials || {}),
             genre || null,
-            JSON.stringify(recommended_author_ids || [])
+            JSON.stringify(recommended_author_ids || []),
+            amazonUrl || null,
+            goodreadsUrl || null,
+            spotifyUrl || null,
+            JSON.stringify(profileImages || []),
+            JSON.stringify(videoIntroductions || []),
+            autoResponderContributor || null,
+            autoResponderFan || null,
+            JSON.stringify(targetGender || []),
+            JSON.stringify(targetAge || []),
+            JSON.stringify(targetIncome || []),
+            JSON.stringify(targetEducation || []),
+            meta_pixel_id || null,
+            ga_measurement_id || null
         ]);
         return result;
     }
 
     static async update(id, data) {
-        const { name, bio, profile_image_url, socials, genre, recommended_author_ids } = data;
-        const sql = `UPDATE authors SET name = ?, bio = ?, profile_image_url = ?, socials = ?, genre = ?, recommended_author_ids = ? WHERE id = ?`;
+        const {
+            handle, name, bio, about, profile_image_url, socials, genre,
+            recommended_author_ids, amazonUrl, goodreadsUrl, spotifyUrl,
+            profileImages, videoIntroductions, autoResponderContributor,
+            autoResponderFan, targetGender, targetAge, targetIncome,
+            targetEducation, meta_pixel_id, ga_measurement_id
+        } = data;
+
+        const sql = `UPDATE authors SET 
+            handle = ?, name = ?, bio = ?, about = ?, profile_image_url = ?, socials = ?, genre = ?, 
+            recommended_author_ids = ?, amazon_url = ?, goodreads_url = ?, spotify_url = ?, 
+            profile_images = ?, video_introductions = ?, auto_responder_contributor = ?, 
+            auto_responder_fan = ?, target_gender = ?, target_age = ?, target_income = ?, 
+            target_education = ?, meta_pixel_id = ?, ga_measurement_id = ? 
+            WHERE id = ?`;
+
         await db.query(sql, [
+            handle,
             name,
             bio,
+            about,
             profile_image_url,
             JSON.stringify(socials || {}),
             genre,
             JSON.stringify(recommended_author_ids || []),
+            amazonUrl,
+            goodreadsUrl,
+            spotifyUrl,
+            JSON.stringify(profileImages || []),
+            JSON.stringify(videoIntroductions || []),
+            autoResponderContributor,
+            autoResponderFan,
+            JSON.stringify(targetGender || []),
+            JSON.stringify(targetAge || []),
+            JSON.stringify(targetIncome || []),
+            JSON.stringify(targetEducation || []),
+            meta_pixel_id || null,
+            ga_measurement_id || null,
             id
         ]);
         return this.findById(id);

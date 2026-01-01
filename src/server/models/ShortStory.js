@@ -1,46 +1,32 @@
 // src/server/models/ShortStory.js
 import db from '../db.js';
 
-import db from '../db.js';
+
 
 export default class ShortStory {
-    constructor({ id, author_id, title, content_html, genre, summary, status, published_at, cover_image_url, price_monthly }) {
+    constructor({ id, author_id, title, content_html, genre, summary, status, published_at, cover_image_url, price_monthly, subscribers_count, lifetime_earnings }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
         this.content_html = content_html;
-        this.genre = genre;
+        this.genre = genre || null;
         this.summary = summary;
         this.status = status;
         this.published_at = published_at;
         this.cover_image_url = cover_image_url || null;
         this.price_monthly = price_monthly || 0;
+        this.subscribers_count = subscribers_count || 0;
+        this.lifetime_earnings = lifetime_earnings || 0;
     }
 
     static async findAll() {
-        let dbStories = [];
         try {
             const { rows } = await db.query('SELECT * FROM short_stories ORDER BY published_at DESC');
-            dbStories = rows.map(row => new ShortStory(row));
+            return rows.map(row => new ShortStory(row));
         } catch (err) {
-            console.warn("Database error in ShortStory.findAll, using mock data only:", err.message);
+            console.error("Database error in ShortStory.findAll:", err.message);
+            return [];
         }
-
-        // Map mock data
-        const mockStories = SHORT_STORIES.map(s => new ShortStory({
-            id: s.id,
-            author_id: 'a1', // Assumption
-            title: s.title,
-            content_html: '', // Not needed for list
-            genre: s.genre,
-            summary: s.blurb,
-            status: 'published',
-            published_at: s.releaseDate,
-            cover_image_url: s.coverImage,
-            price_monthly: s.priceFull
-        }));
-
-        return [...dbStories, ...mockStories];
     }
 
     static async findById(id) {

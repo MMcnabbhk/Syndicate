@@ -2,7 +2,7 @@
 import db from '../db.js';
 
 export default class Novel {
-    constructor({ id, author_id, title, description, cover_image_url, status, price_monthly, published_at }) {
+    constructor({ id, author_id, title, description, cover_image_url, status, price_monthly, published_at, subscribers_count, lifetime_earnings, genre }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -11,6 +11,9 @@ export default class Novel {
         this.status = status;
         this.price_monthly = price_monthly || 0;
         this.published_at = published_at;
+        this.subscribers_count = subscribers_count || 0;
+        this.lifetime_earnings = lifetime_earnings || 0;
+        this.genre = genre || null;
     }
 
     static async findAll() {

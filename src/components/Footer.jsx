@@ -9,7 +9,7 @@ const Footer = () => {
                 {/* Left Side: Description */}
                 <div>
                     <p className="text-zinc-400 leading-relaxed max-w-md">
-                        <span className="font-bold" style={{ color: '#cc5500' }}>Syndicate</span> is a syndication platform for writers. We connect readers with authors through a daily or weekly content (chapters, stories, poems) release model. Readers can choose to make a contribution to authors to express appreciation for their art.
+                        <span className="font-bold" style={{ color: '#cc5500' }}>Syndicate</span> is a syndication platform for creators. We connect audiences with creators through a daily or weekly content release model. Readers/Viewers can choose to make a contribution to creators to express appreciation for their art.
                     </p>
 
                     {/* Explicit Line Space */}
@@ -28,12 +28,12 @@ const Footer = () => {
                     {/* Emails */}
                     <div className="flex flex-col gap-4 justify-start">
                         <div>
-                            <span className="block text-zinc-500 text-sm mb-1 uppercase tracking-wider font-bold">For Authors</span>
-                            <a href="mailto:Authorsupport@syndicate.direct" className="text-white hover:text-violet-400 transition-colors block text-[11pt] font-medium">Authorsupport@syndicate.direct</a>
+                            <span className="block text-zinc-500 text-sm mb-1 uppercase tracking-wider font-bold">For Creators</span>
+                            <a href="mailto:Creatorsupport@syndicate.direct" className="text-white hover:text-violet-400 transition-colors block text-[11pt] font-medium">Creatorsupport@syndicate.direct</a>
                         </div>
                         <div>
-                            <span className="block text-zinc-500 text-sm mb-1 uppercase tracking-wider font-bold">For Readers</span>
-                            <a href="mailto:Readersupport@syndicate.direct" className="text-white hover:text-violet-400 transition-colors block text-[11pt] font-medium">Readersupport@syndicate.direct</a>
+                            <span className="block text-zinc-500 text-sm mb-1 uppercase tracking-wider font-bold">For Readers/Viewers</span>
+                            <a href="mailto:support@syndicate.direct" className="text-white hover:text-violet-400 transition-colors block text-[11pt] font-medium">support@syndicate.direct</a>
                         </div>
                     </div>
                 </div>

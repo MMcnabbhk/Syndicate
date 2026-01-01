@@ -144,7 +144,7 @@ const AuthorProfile = () => {
                             <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-xl">
                                 <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">About {author.name}</h3>
                                 <div className="prose prose-invert prose-lg max-w-none text-zinc-300 font-light leading-relaxed">
-                                    <p>{author.bio || author.description}</p>
+                                    <p className="whitespace-pre-wrap">{author.about || author.bio || author.description}</p>
                                 </div>
                             </div>
                         </header>

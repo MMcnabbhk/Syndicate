@@ -34,7 +34,7 @@ const About = () => {
                     About <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Syndicate</span>
                 </h1>
                 <p className="text-xl text-zinc-400 max-w-2xl" style={{ marginBottom: '30px' }}>
-                    The platform for the direct-to-reader revolution.
+                    The future of publishing is not in algorithms.
                 </p>
             </header>
 

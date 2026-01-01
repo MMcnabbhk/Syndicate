@@ -26,6 +26,30 @@ export const adaptNovelForUI = (novel) => {
 };
 
 /**
+ * Adapt an author from SQL format to UI format
+ */
+export const adaptAuthorForUI = (author) => {
+    if (!author) return null;
+
+    return {
+        ...author,
+        id: author.id,
+        name: author.name,
+        handle: author.name ? '@' + author.name.replace(/\s+/g, '').toLowerCase() : '@unknown',
+        bio: author.bio || 'No biography available.',
+        image: author.profile_image_url || author.image || 'https://via.placeholder.com/150', // Fallback image
+        coverImage: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&q=80&w=2070", // Default cover
+        socials: author.socials || {},
+        stats: {
+            books: (author.novel_count || 0) + (author.collection_count || 0) + (author.audiobook_count || 0),
+            followers: "1.2k", // Mock for now if not in DB
+            rating: "4.8" // Mock for now
+        },
+        joinedDate: author.created_at ? new Date(author.created_at).toLocaleDateString() : 'Unknown'
+    };
+};
+
+/**
  * Adapt an audiobook from SQL format to UI format
  */
 export const adaptAudiobookForUI = (audiobook) => {

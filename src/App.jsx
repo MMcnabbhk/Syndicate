@@ -16,7 +16,7 @@ import Poetry from './pages/Poetry';
 import ReaderProfileSetup from './pages/ReaderProfileSetup';
 import CreatorProfileSetup from './pages/CreatorProfileSetup';
 import SyndicateWorkSetup from './pages/SyndicateWorkSetup';
-import ContentSyndication from './pages/ContentSyndication';
+import NewWork from './pages/NewWork';
 
 import AudioBooks from './pages/AudioBooks';
 import AudioBooksList from './pages/AudioBooksList';
@@ -24,6 +24,10 @@ import PoetryCollections from './pages/PoetryCollections';
 import Discover from './pages/Discover';
 import AuthorProfile from './pages/AuthorProfile';
 import AuthorContribution from './pages/AuthorContribution';
+import ManageWorks from './pages/ManageWorks';
+import CreatorProfile from './pages/CreatorProfile';
+import FansAndContributors from './pages/FansAndContributors';
+import Money from './pages/Money';
 import { StoreProvider } from './context/StoreContext';
 
 function App() {
@@ -43,13 +47,17 @@ function App() {
             <Route path="setup-profile" element={<ReaderProfileSetup />} />
             <Route path="creator-setup" element={<CreatorProfileSetup />} />
             <Route path="syndicate-work" element={<SyndicateWorkSetup />} />
-            <Route path="syndicate-content" element={<ContentSyndication />} />
+            <Route path="new-work" element={<NewWork />} />
             <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
             <Route path="book/:id" element={<BookProfile />} />
             <Route path="book/:id/contribute" element={<AuthorContribution />} />
             <Route path="author/:id" element={<AuthorProfile />} />
             <Route path="read/:bookId/:chapterId" element={<Reader />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="manage-works" element={<ManageWorks />} />
+            <Route path="creator-profile" element={<CreatorProfile />} />
+            <Route path="community" element={<FansAndContributors />} />
+            <Route path="money" element={<Money />} />
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="about" element={<About />} />

@@ -10,6 +10,15 @@ import PoetryCollection from '../models/PoetryCollection.js';
 import PoetryCollectionItem from '../models/PoetryCollectionItem.js';
 import AudiobookChapter from '../models/AudiobookChapter.js';
 import Author from '../models/Author.js';
+import User from '../models/User.js';
+
+// Auth middleware
+const isAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).json({ error: 'Unauthorized' });
+};
 
 // Validation middleware
 const validatePoem = (req, res, next) => {
@@ -166,6 +175,33 @@ router.get('/authors/:id', getOne(Author));
 router.post('/authors', create(Author));
 router.put('/authors/:id', update(Author));
 router.delete('/authors/:id', remove(Author));
+
+// Current Session Author Endpoints
+router.get('/authors/me', isAuthenticated, async (req, res) => {
+    try {
+        const author = await Author.findByUserId(req.user.id);
+        if (author) {
+            res.json(author);
+        } else {
+            res.status(404).json({ error: 'Author record not found for this user' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.put('/authors/me', isAuthenticated, async (req, res) => {
+    try {
+        const author = await Author.findByUserId(req.user.id);
+        if (!author) {
+            return res.status(404).json({ error: 'Author record not found' });
+        }
+        const updatedAuthor = await Author.update(author.id, req.body);
+        res.json(updatedAuthor);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Combined Profile Data endpoint
 // Combined Profile Data endpoint

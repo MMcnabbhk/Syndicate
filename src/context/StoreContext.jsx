@@ -4,8 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const INITIAL_USER_STATE = {
     subscriptions: [],
     walletBalance: 50.00,
-    role: 'reader',
-    isAuthenticated: false
+    role: 'creator',
+    isAuthenticated: true
 };
 
 
@@ -17,7 +17,7 @@ export const StoreProvider = ({ children }) => {
     // Initialize state from LocalStorage or default mock
     const [userState, setUserState] = useState(() => {
         console.log('StoreProvider initializing state');
-        const saved = localStorage.getItem('syndicate_user_v2');
+        const saved = localStorage.getItem('syndicate_user_v3');
         return saved ? JSON.parse(saved) : INITIAL_USER_STATE;
     });
 
@@ -47,7 +47,7 @@ export const StoreProvider = ({ children }) => {
 
     // Persist to LocalStorage whenever state changes (keep this for preferences/subscriptions if not fully migrated)
     useEffect(() => {
-        localStorage.setItem('syndicate_user_v2', JSON.stringify(userState));
+        localStorage.setItem('syndicate_user_v3', JSON.stringify(userState));
     }, [userState]);
 
     // Actions

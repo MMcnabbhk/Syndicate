@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { BookOpen, User, Library, PenTool, Search, Headphones, House, LayoutDashboard, ChevronDown, UserCircle, Settings } from 'lucide-react';
+import { BookOpen, User, Library, PenTool, Search, Headphones, House, LayoutDashboard, ChevronDown, UserCircle, Settings, Users, DollarSign } from 'lucide-react';
 import Footer from './Footer';
 import LoginModal from './LoginModal';
 import CreateAccountModal from './CreateAccountModal';
@@ -72,47 +72,55 @@ const Layout = () => {
 
                                             {isCreatorMenuOpen && (
                                                 <div className="absolute right-0 mt-2 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in duration-200">
-                                                    <div className="p-2 space-y-1">
-                                                        <Link
-                                                            to="/profile"
-                                                            onClick={() => setIsCreatorMenuOpen(false)}
-                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                                        >
-                                                            <User size={16} />
-                                                            <span>Profile Settings</span>
-                                                        </Link>
-                                                        <div className="h-px bg-white/5 my-1"></div>
+                                                    <div className="p-2 space-y-[9px]">
                                                         <Link
                                                             to="/dashboard"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
-                                                            <LayoutDashboard size={16} />
-                                                            <span>Creator Dashboard</span>
+                                                            <LayoutDashboard size={16} className="text-violet-500" />
+                                                            <span>Dashboard</span>
                                                         </Link>
                                                         <Link
-                                                            to="/author/a1"
+                                                            to="/manage-works"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
-                                                            <UserCircle size={16} />
-                                                            <span>View Public Bio</span>
+                                                            <Library size={16} className="text-violet-500" />
+                                                            <span>Manage Works</span>
                                                         </Link>
                                                         <Link
-                                                            to="/syndicate-work"
+                                                            to="/creator-profile"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
-                                                            <PenTool size={16} />
-                                                            <span>Syndicate Work Setup</span>
+                                                            <User size={16} className="text-violet-500" />
+                                                            <span>Creator Profile</span>
                                                         </Link>
                                                         <Link
-                                                            to="/creator-setup"
+                                                            to="/community"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
-                                                            <Settings size={16} />
-                                                            <span>Onboarding Setup</span>
+                                                            <Users size={16} className="text-violet-500" />
+                                                            <span>Fans & Contributors</span>
+                                                        </Link>
+                                                        <Link
+                                                            to="/money"
+                                                            onClick={() => setIsCreatorMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                        >
+                                                            <DollarSign size={16} className="text-violet-500" />
+                                                            <span>Money</span>
+                                                        </Link>
+                                                        <div className="h-px bg-white/5 my-1"></div>
+                                                        <Link
+                                                            to="/settings"
+                                                            onClick={() => setIsCreatorMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                        >
+                                                            <Settings size={16} className="text-violet-500" />
+                                                            <span>Settings</span>
                                                         </Link>
                                                     </div>
                                                 </div>

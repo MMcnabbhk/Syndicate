@@ -2,7 +2,7 @@
 import db from '../db.js';
 
 export default class PoetryCollection {
-    constructor({ id, author_id, title, description, cover_image_url, status, published_at }) {
+    constructor({ id, author_id, title, description, cover_image_url, status, published_at, price_monthly }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;

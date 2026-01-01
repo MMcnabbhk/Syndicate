@@ -1,10 +1,10 @@
 // src/server/models/Audiobook.js
-import db from '../db.js';
 
-import db from '../db.js';
+
+
 
 export default class Audiobook {
-    constructor({ id, author_id, title, cover_image_url, narrator, duration_seconds, status, published_at, price_monthly }) {
+    constructor({ id, author_id, title, cover_image_url, narrator, duration_seconds, status, published_at, price_monthly, subscribers_count, lifetime_earnings, genre }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -14,6 +14,9 @@ export default class Audiobook {
         this.status = status;
         this.published_at = published_at;
         this.price_monthly = price_monthly || 0;
+        this.subscribers_count = subscribers_count || 0;
+        this.lifetime_earnings = lifetime_earnings || 0;
+        this.genre = genre || null;
     }
 
     static async findAll() {

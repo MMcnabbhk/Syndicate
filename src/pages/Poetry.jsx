@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePoems } from '../hooks/useData';
-import { usePoems } from '../hooks/useData';
+
 import BookCard from '../components/BookCard';
 import { Sparkles, Library, Loader2 } from 'lucide-react';
 
