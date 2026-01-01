@@ -1,12 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Facebook, Instagram, Twitter, Music, Book, PenTool, Headphones, Library, Play, Share2, Star, ChevronRight } from 'lucide-react';
+
+import { ChevronLeft, Facebook, Instagram, Twitter, Music, Book, PenTool, Headphones, Library, Play, Share2, Star, ChevronRight, Globe, Linkedin, AtSign, Video, Send, Cloud, ShoppingBag, BookOpen, Heart } from 'lucide-react';
+import { useAuthors } from '../hooks/useData';
 
 const AuthorProfile = () => {
     const { id } = useParams();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeVideo, setActiveVideo] = useState(false);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+
+    // Fetch all authors for navigation
+    const { data: allAuthors } = useAuthors();
+
+    // Calculate Next Creator
+    const nextAuthorId = useMemo(() => {
+        if (!allAuthors || !id) return null;
+        const currentIndex = allAuthors.findIndex(a => String(a.id) === String(id));
+        if (currentIndex === -1) return null;
+        const nextIndex = (currentIndex + 1) % allAuthors.length;
+        return allAuthors[nextIndex].id;
+    }, [allAuthors, id]);
 
     useEffect(() => {
         setLoading(true);
@@ -49,13 +64,22 @@ const AuthorProfile = () => {
     return (
         <div className="bg-[#09090b] min-h-screen pb-40 border-t border-white/5">
             {/* Header / Nav Back */}
-            <div className="container pt-8 pb-4">
+            <div className="container pt-8 pb-4 flex items-center justify-between">
                 <Link to="/discover" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
                     <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
                         <ChevronLeft size={16} />
                     </div>
                     <span className="font-bold text-sm tracking-wide uppercase">Back to Discover</span>
                 </Link>
+
+                {nextAuthorId && (
+                    <Link to={`/author/${nextAuthorId}`} className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
+                        <span className="font-bold text-sm tracking-wide uppercase">Next Creator</span>
+                        <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+                            <ChevronRight size={16} />
+                        </div>
+                    </Link>
+                )}
             </div>
 
             <div style={{ height: '20px' }}></div>
@@ -103,31 +127,104 @@ const AuthorProfile = () => {
                             <div className="flex flex-col xl:flex-row gap-6 mb-[20px]">
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div>
-                                        <h1 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">{author.name}</h1>
-                                        {author.genre && <span className="text-violet-400 font-bold text-lg tracking-wider uppercase block">{author.genre}</span>}
+                                        <h1 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-tight">{author.name}</h1>
+
+                                        {author.genre && <span className="text-violet-400 font-bold text-lg tracking-wider uppercase block mb-6">{author.genre}</span>}
+                                        <div style={{ height: '10px' }}></div>
+
+                                        {/* External Platforms Buttons */}
+                                        <div className="flex flex-wrap gap-3 mb-6">
+                                            {author.amazonUrl && author.amazonUrl.length > 0 && (
+                                                <a href={author.amazonUrl} target="_blank" rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
+                                                    style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
+                                                    <ShoppingBag size={14} /> Amazon Author
+                                                </a>
+                                            )}
+                                            {author.goodreadsUrl && author.goodreadsUrl.length > 0 && (
+                                                <a href={author.goodreadsUrl} target="_blank" rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
+                                                    style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
+                                                    <BookOpen size={14} /> Goodreads
+                                                </a>
+                                            )}
+                                            {author.spotifyUrl && author.spotifyUrl.length > 0 && (
+                                                <a href={author.spotifyUrl} target="_blank" rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
+                                                    style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
+                                                    <Music size={14} /> Spotify
+                                                </a>
+                                            )}
+                                        </div>
+                                        <div style={{ height: '10px' }}></div>
+
+                                        {/* Social Icons */}
+                                        <div className="flex flex-wrap gap-4 items-center">
+                                            {author.socials?.website && author.socials.website.length > 0 && <a href={author.socials.website} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Globe size={20} color="#71717a" /></a>}
+                                            {author.socials?.twitter && author.socials.twitter.length > 0 && <a href={author.socials.twitter} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Twitter size={20} color="#71717a" /></a>}
+                                            {author.socials?.instagram && author.socials.instagram.length > 0 && <a href={author.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Instagram size={20} color="#71717a" /></a>}
+                                            {author.socials?.facebook && author.socials.facebook.length > 0 && <a href={author.socials.facebook} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Facebook size={20} color="#71717a" /></a>}
+                                            {author.socials?.threads && author.socials.threads.length > 0 && <a href={author.socials.threads} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><AtSign size={20} color="#71717a" /></a>}
+                                            {author.socials?.tiktok && author.socials.tiktok.length > 0 && <a href={author.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Music size={20} color="#71717a" /></a>}
+                                            {author.socials?.bluesky && author.socials.bluesky.length > 0 && <a href={author.socials.bluesky} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Cloud size={20} color="#71717a" /></a>}
+                                            {author.socials?.dispatch && author.socials.dispatch.length > 0 && <a href={author.socials.dispatch} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Send size={20} color="#71717a" /></a>}
+                                            {author.socials?.linkedin && author.socials.linkedin.length > 0 && <a href={author.socials.linkedin} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity"><Linkedin size={20} color="#71717a" /></a>}
+                                        </div>
+
+                                        <div style={{ height: '30px' }}></div>
+
+                                        <Link to={`/author/${id}/contribute`}
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-800 border border-orange-500/30 rounded-full font-bold uppercase hover:bg-zinc-700 transition-colors"
+                                            style={{ fontSize: '18px', color: '#F97316' }}
+                                        >
+                                            <Heart size={20} className="text-white fill-white" />
+                                            Make a Contribution
+                                        </Link>
+
+                                        <div style={{ height: '20px' }}></div>
+
+                                        <div
+                                            className="flex items-center gap-3 cursor-pointer group"
+                                            onClick={() => {
+                                                setIsSubscribed(!isSubscribed);
+                                                console.log(`Subscription to ${author.name}: ${!isSubscribed ? 'Active' : 'Inactive'}`);
+                                            }}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full border border-white/30 flex items-center justify-center transition-colors ${isSubscribed ? 'bg-orange-500 border-orange-500' : 'group-hover:border-white/50'}`}>
+                                                {isSubscribed && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                            </div>
+                                            <span className="text-sm font-medium text-white">
+                                                Update me on {author.name}
+                                            </span>
+                                        </div>
                                     </div>
-
-
                                 </div>
 
-                                {/* Moved Video Section */}
-                                {author.video_url && (
-                                    <div className="w-full xl:w-96 shrink-0">
+                                {/* Feature Video */}
+                                {author.videoIntroductions && author.videoIntroductions.length > 0 && author.videoIntroductions[0].url && (
+                                    <div className="w-full xl:w-[480px] shrink-0">
                                         <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4 h-full">
-                                            <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4">Meet the Author</h3>
+                                            {/* Label Removed as per request */}
+
                                             <div className="relative aspect-video bg-black rounded-xl overflow-hidden group cursor-pointer border border-white/10" onClick={() => setActiveVideo(true)}>
                                                 {!activeVideo ? (
-                                                    <>
+                                                    <div className="w-full h-full relative">
                                                         <img src={author.profile_image_url} className="w-full h-full object-cover opacity-60 blur-sm group-hover:opacity-40 transition-opacity" alt="Video thumbnail" />
                                                         <div className="absolute inset-0 flex items-center justify-center">
-                                                            <div className="w-14 h-14 bg-violet-600 rounded-full flex items-center justify-center shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform">
-                                                                <Play fill="white" className="text-white ml-1" size={24} />
+                                                            <div className="w-16 h-16 bg-violet-600 rounded-full flex items-center justify-center shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform">
+                                                                <Play fill="white" className="text-white ml-1" size={28} />
                                                             </div>
                                                         </div>
-                                                    </>
+                                                        <div className="absolute bottom-4 left-4 right-4">
+                                                            <p className="text-white font-bold text-shadow line-clamp-1">{author.videoIntroductions[0].title || "Featured Video"}</p>
+                                                        </div>
+                                                    </div>
                                                 ) : (
                                                     <iframe
-                                                        src={`https://player.vimeo.com/video/${author.video_url.split('/').pop()}?autoplay=1&title=0&byline=0&portrait=0`}
+                                                        /* Simple check to see if it's Vimeo or YouTube and format accordingly */
+                                                        src={author.videoIntroductions[0].url.includes('vimeo')
+                                                            ? `https://player.vimeo.com/video/${author.videoIntroductions[0].url.split('/').pop()}?autoplay=1`
+                                                            : author.videoIntroductions[0].url.replace('watch?v=', 'embed/').split('&')[0] + '?autoplay=1'}
                                                         className="w-full h-full"
                                                         frameBorder="0"
                                                         allow="autoplay; fullscreen; picture-in-picture"
@@ -142,7 +239,7 @@ const AuthorProfile = () => {
 
                             {/* Bio Box */}
                             <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-xl">
-                                <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">About {author.name}</h3>
+                                <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">About The Creator</h3>
                                 <div className="prose prose-invert prose-lg max-w-none text-zinc-300 font-light leading-relaxed">
                                     <p className="whitespace-pre-wrap">{author.about || author.bio || author.description}</p>
                                 </div>
@@ -153,18 +250,19 @@ const AuthorProfile = () => {
                             {/* Works Section */}
                             <div>
                                 <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                                    Works
                                     <span className="w-8 h-[2px] bg-violet-500 block"></span>
-                                    Published Works
                                 </h2>
+                                <div style={{ height: '20px' }}></div>
 
                                 {allWorks.length > 0 ? (
-                                    <div className="space-y-6">
+                                    <div className="flex flex-col" style={{ gap: '40px' }}>
                                         {allWorks.map((work, idx) => (
                                             <div key={idx} className="flex flex-col md:flex-row gap-6 p-6 rounded-2xl bg-zinc-900/30 border border-white/5 hover:border-violet-500/30 hover:bg-zinc-900/50 transition-all duration-300">
                                                 {/* Work Image */}
-                                                <Link to={work.type === 'Audiobook' ? `/audiobook/${work.id}` : `/book/${work.id}`} className="shrink-0 w-32 aspect-[2/3] bg-zinc-800 rounded-lg overflow-hidden shadow-lg group">
-                                                    {work.coverImage ? (
-                                                        <img src={work.coverImage} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" alt={work.title} />
+                                                <Link to={work.type === 'Audiobook' ? `/audiobook/${work.id}` : `/book/${work.id}`} className="shrink-0 w-32 aspect-[2/3] bg-zinc-800 rounded-lg overflow-hidden shadow-lg group mb-4 md:mb-0">
+                                                    {(work.cover_image_url || work.coverImage) ? (
+                                                        <img src={work.cover_image_url || work.coverImage} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" alt={work.title} />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-600">
                                                             <Book size={20} />
@@ -173,13 +271,7 @@ const AuthorProfile = () => {
                                                 </Link>
 
                                                 <div className="flex-1 flex flex-col">
-                                                    {work.genre && (
-                                                        <div className="mb-2">
-                                                            <span className="text-zinc-500 text-xs font-bold uppercase tracking-wider">{work.genre}</span>
-                                                        </div>
-                                                    )}
-
-                                                    <Link to={work.type === 'Audiobook' ? `/audiobook/${work.id}` : `/book/${work.id}`} className="inline-flex items-center gap-3 group/title">
+                                                    <Link to={work.type === 'Audiobook' ? `/audiobook/${work.id}` : `/book/${work.id}`} className="inline-flex items-center gap-3 group/title mb-2">
                                                         <h3 className="text-2xl font-bold text-white group-hover/title:text-violet-400 transition-colors leading-tight">
                                                             {work.title}
                                                         </h3>
@@ -191,12 +283,11 @@ const AuthorProfile = () => {
                                                         </span>
                                                     </Link>
 
-                                                    <div className="flex items-center gap-1 mb-4 text-yellow-400">
-                                                        {work.rating && Array.from({ length: 5 }).map((_, i) => (
-                                                            <Star key={i} size={14} className={i < Math.floor(work.rating) ? 'fill-yellow-400' : 'text-zinc-700 fill-zinc-700'} />
-                                                        ))}
-                                                        <span className="text-zinc-500 text-xs font-bold ml-2">{work.rating} / 5.0</span>
-                                                    </div>
+                                                    {work.genre && (
+                                                        <div className="mb-4">
+                                                            <span className="text-violet-400 text-sm font-bold uppercase tracking-wider">{work.genre}</span>
+                                                        </div>
+                                                    )}
 
                                                     <p className="text-zinc-400 leading-relaxed mb-6 font-light">{work.blurb || work.description || work.shortDescription}</p>
 
@@ -238,6 +329,8 @@ const AuthorProfile = () => {
 
 
 
+
+
                             {/* Recommended Authors Section */}
                             {author.recommended_author_ids && author.recommended_author_ids.length > 0 && (
                                 <div>
@@ -267,6 +360,7 @@ const AuthorProfile = () => {
                         </div>
                     </div>
                 </div>
+                <div style={{ height: '50px' }}></div>
             </div>
         </div>
     );

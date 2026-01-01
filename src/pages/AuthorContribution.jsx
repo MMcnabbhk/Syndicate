@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Heart, CreditCard, Lock, MapPin, Loader2 } from 'lucide-react';
-import { useNovel } from '../hooks/useData';
+import { useNovel, useAuthor } from '../hooks/useData';
 
 const US_STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -14,7 +14,22 @@ const US_STATES = [
 const AuthorContribution = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { data: book, loading, error } = useNovel(id);
+    const location = useLocation();
+    const isAuthorMode = location.pathname.includes('/author/');
+
+    const { data: book, loading: bookLoading, error: bookError } = useNovel(!isAuthorMode ? id : null);
+    const { data: authorData, loading: authorLoading, error: authorError } = useAuthor(isAuthorMode ? id : null);
+
+    const loading = isAuthorMode ? authorLoading : bookLoading;
+    const error = isAuthorMode ? authorError : bookError;
+
+    // Normalize data
+    const entity = isAuthorMode ? {
+        id: authorData?.id,
+        title: `Contribution to ${authorData?.name}`,
+        author: authorData?.name
+    } : book;
+
     const [amount, setAmount] = useState(5);
     const [customAmount, setCustomAmount] = useState('');
     const [note, setNote] = useState('');
@@ -24,20 +39,20 @@ const AuthorContribution = () => {
 
     const handlePay = () => {
         console.log('Processing payment:', {
-            bookId: book.id,
-            bookTitle: book.title,
-            author: book.author,
+            targetId: entity.id,
+            targetTitle: entity.title,
+            author: entity.author,
             amount: currentAmount,
             note: note
         });
-        alert(`Thank you for your contribution of $${displayAmount}! Your note has been sent to ${book.author}.`);
+        alert(`Thank you for your contribution of $${displayAmount}! Your note has been sent to ${entity.author}.`);
     };
 
     const handlePayPal = () => {
         console.log('Processing PayPal payment:', {
-            bookId: book.id,
-            bookTitle: book.title,
-            author: book.author,
+            targetId: entity.id,
+            targetTitle: entity.title,
+            author: entity.author,
             amount: currentAmount,
             note: note,
             provider: 'PayPal'
@@ -53,7 +68,7 @@ const AuthorContribution = () => {
         );
     }
 
-    if (!book) return <div className="container py-20 text-center text-white">Book not found</div>;
+    if (!entity) return <div className="container py-20 text-center text-white">Target not found</div>;
 
     return (
         <div className="container py-10 max-w-6xl">
@@ -61,7 +76,7 @@ const AuthorContribution = () => {
                 onClick={() => navigate(-1)}
                 className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
             >
-                <ArrowLeft size={20} /> Back to Book
+                <ArrowLeft size={20} /> Back
             </button>
             <div style={{ height: '15px' }} />
 
@@ -72,8 +87,8 @@ const AuthorContribution = () => {
 
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
 
-                        <h2 className="text-xl font-bold text-white mb-1">{book.title}</h2>
-                        <p className="text-zinc-400 mb-4">by <span className="text-white">{book.author}</span></p>
+                        <h2 className="text-xl font-bold text-white mb-1">{entity.title}</h2>
+                        {!isAuthorMode && <p className="text-zinc-400 mb-4">by <span className="text-white">{entity.author}</span></p>}
 
                         <div className="border-t border-zinc-700 pt-4 mt-4">
                             <div className="flex items-center justify-between text-zinc-300 mb-2">
@@ -97,7 +112,7 @@ const AuthorContribution = () => {
                             <Heart className="text-violet-400 shrink-0 mt-1" size={24} />
                             <div>
                                 <p className="text-violet-200 text-sm font-medium">100% goes to the author</p>
-                                <p className="text-violet-300/70 text-xs mt-1 mb-3">Your support directly helps {book.author} create more content.</p>
+                                <p className="text-violet-300/70 text-xs mt-1 mb-3">Your support directly helps {entity.author} create more content.</p>
                                 <div className="h-6"></div>
                                 <p className="text-white text-xs leading-relaxed">
                                     <span className="text-orange-500">Syndicate</span> is a platform built by creators to support creators. Authors contribute $2.00 a month to the costs of operating the platform. The balance of contributions less Stripe payment processing fees (3.4%) goes to the author.
@@ -116,7 +131,7 @@ const AuthorContribution = () => {
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
                                 className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl p-4 text-white focus:outline-none focus:border-violet-500 transition-colors resize-none"
-                                placeholder={`${book.author} would love to hear from you.`}
+                                placeholder={`${entity.author} would love to hear from you.`}
                             />
                             <div style={{ height: '40px' }} />
                         </div>
@@ -128,7 +143,7 @@ const AuthorContribution = () => {
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 md:p-10">
                         <div>
                             <h1 className="text-3xl font-bold text-white mb-4">Checkout</h1>
-                            <p className="text-zinc-400">Complete your contribution details below. {book.author} will appreciate it.</p>
+                            <p className="text-zinc-400">Complete your contribution details below. {entity.author} will appreciate it.</p>
                         </div>
                         <div style={{ height: '15px' }} />
                         <h3 className="text-xl font-bold text-white mb-6">Contribution Amount</h3>

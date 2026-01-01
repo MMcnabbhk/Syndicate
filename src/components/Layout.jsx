@@ -90,13 +90,23 @@ const Layout = () => {
                                                             <span>Manage Works</span>
                                                         </Link>
                                                         <Link
-                                                            to="/creator-profile"
+                                                            to="/manage-profile"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
-                                                            <User size={16} className="text-violet-500" />
-                                                            <span>Creator Profile</span>
+                                                            <UserCircle size={16} className="text-violet-500" />
+                                                            <span>Manage Profile</span>
                                                         </Link>
+                                                        {userState.authorId && (
+                                                            <Link
+                                                                to={`/author/${userState.authorId}`}
+                                                                onClick={() => setIsCreatorMenuOpen(false)}
+                                                                className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                            >
+                                                                <User size={16} className="text-violet-500" />
+                                                                <span>My Profile</span>
+                                                            </Link>
+                                                        )}
                                                         <Link
                                                             to="/community"
                                                             onClick={() => setIsCreatorMenuOpen(false)}

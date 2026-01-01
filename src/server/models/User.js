@@ -62,6 +62,12 @@ class User {
         return rows.length ? new User(rows[0]) : null;
     }
 
+    static async findByEmail(email) {
+        const sql = 'SELECT * FROM users WHERE email = ?';
+        const { rows } = await db.query(sql, [email]);
+        return rows.length ? new User(rows[0]) : null;
+    }
+
     static async create({ googleId, microsoftId, appleId, email, displayName, avatarUrl, role = 'reader' }) {
         const sql = `
             INSERT INTO users (google_id, microsoft_id, apple_id, email, display_name, avatar_url, role)

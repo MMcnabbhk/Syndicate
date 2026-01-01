@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const INITIAL_USER_STATE = {
     subscriptions: [],
@@ -14,6 +15,8 @@ const StoreContext = createContext();
 export const useStore = () => useContext(StoreContext);
 
 export const StoreProvider = ({ children }) => {
+    const navigate = useNavigate();
+
     // Initialize state from LocalStorage or default mock
     const [userState, setUserState] = useState(() => {
         console.log('StoreProvider initializing state');
@@ -28,15 +31,21 @@ export const StoreProvider = ({ children }) => {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/auth/me'); // Make sure to use correct API URL
+                const res = await fetch('http://localhost:4000/api/auth/me', {
+                    credentials: 'include' // Critical for sending the session cookie
+                });
                 const data = await res.json();
                 if (data.isAuthenticated) {
                     setUserState(prev => ({
                         ...prev,
                         isAuthenticated: true,
                         role: data.user.role || 'reader',
-                        // You might want to merge other user data here
+                        authorId: data.user.authorId || null
                     }));
+                } else {
+                    // If server says not authenticated, clear local state
+                    setUserState(prev => ({ ...prev, isAuthenticated: false, role: 'reader', authorId: null }));
+                    localStorage.removeItem('syndicate_user_v3');
                 }
             } catch (err) {
                 console.error("Session check failed", err);
@@ -83,8 +92,17 @@ export const StoreProvider = ({ children }) => {
         }));
     };
 
-    const login = (role = 'reader') => {
-        setUserState(prev => ({ ...prev, isAuthenticated: true, role }));
+    const login = (userData = 'reader') => {
+        if (typeof userData === 'string') {
+            setUserState(prev => ({ ...prev, isAuthenticated: true, role: userData }));
+        } else {
+            setUserState(prev => ({
+                ...prev,
+                isAuthenticated: true,
+                role: userData.role || 'reader',
+                authorId: userData.authorId || null
+            }));
+        }
         setIsLoginModalOpen(false);
     };
 
@@ -95,6 +113,7 @@ export const StoreProvider = ({ children }) => {
             console.error("Logout error", e);
         }
         setUserState(prev => ({ ...prev, isAuthenticated: false }));
+        navigate('/');
     };
 
     const openLoginModal = () => setIsLoginModalOpen(true);

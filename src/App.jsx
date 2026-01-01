@@ -33,8 +33,8 @@ import { StoreProvider } from './context/StoreContext';
 function App() {
   console.log('App component rendering');
   return (
-    <StoreProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <StoreProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
@@ -51,11 +51,13 @@ function App() {
             <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
             <Route path="book/:id" element={<BookProfile />} />
             <Route path="book/:id/contribute" element={<AuthorContribution />} />
+            <Route path="book/:id/contribute" element={<AuthorContribution />} />
             <Route path="author/:id" element={<AuthorProfile />} />
+            <Route path="author/:id/contribute" element={<AuthorContribution />} />
             <Route path="read/:bookId/:chapterId" element={<Reader />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="manage-works" element={<ManageWorks />} />
-            <Route path="creator-profile" element={<CreatorProfile />} />
+            <Route path="manage-profile" element={<CreatorProfile />} />
             <Route path="community" element={<FansAndContributors />} />
             <Route path="money" element={<Money />} />
             <Route path="library" element={<Library />} />
@@ -64,8 +66,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </StoreProvider>
+      </StoreProvider>
+    </BrowserRouter>
   );
 }
 
