@@ -11,6 +11,8 @@ import About from './pages/About';
 import FAQ from './pages/FAQ';
 import Stories from './pages/Stories';
 import Poetry from './pages/Poetry';
+import VisualArts from './pages/VisualArts';
+import Manifesto from './pages/Manifesto';
 
 
 import ReaderProfileSetup from './pages/ReaderProfileSetup';
@@ -44,6 +46,7 @@ function App() {
             <Route path="audiobooks-list" element={<AudioBooksList />} />
             <Route path="stories" element={<Stories />} />
             <Route path="poetry" element={<Poetry />} />
+            <Route path="visual-arts" element={<VisualArts />} />
             <Route path="poetry-collections" element={<PoetryCollections />} />
             <Route path="setup-profile" element={<ReaderProfileSetup />} />
             <Route path="creator-setup" element={<CreatorProfileSetup />} />
@@ -65,6 +68,7 @@ function App() {
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="about" element={<About />} />
+            <Route path="manifesto" element={<Manifesto />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

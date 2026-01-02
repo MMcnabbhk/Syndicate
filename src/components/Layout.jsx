@@ -41,24 +41,19 @@ const Layout = () => {
                             <span className="text-xs font-bold tracking-wider mt-[5px]" style={{ color: '#cc5500' }}>Create. Share. Save Humanity.</span>
                         </div>
 
-                        <nav className="hidden md:flex items-center gap-4">
+                        <nav className="hidden md:flex items-center gap-4" style={{ marginLeft: '20px' }}>
                             <NavItem to="/" label="Home" icon={House} active={location.pathname === '/'} />
                             <NavItem to="/discover" label="Discover" icon={Search} active={location.pathname === '/discover'} />
                             <NavItem to="/library" label="Books" icon={Library} active={location.pathname === '/library'} />
                             <NavItem to="/audiobooks" label="AudioBooks" icon={Headphones} active={location.pathname === '/audiobooks'} />
                             <NavItem to="/stories" label="Stories" icon={BookOpen} active={location.pathname === '/stories'} />
                             <NavItem to="/poetry" label="Poetry" icon={PenTool} active={location.pathname === '/poetry'} />
+                            <NavItem to="/visual-arts" label="Visual Arts" icon={PenTool} active={location.pathname === '/visual-arts'} />
                         </nav>
 
                         {/* Right side: Login Function */}
                         <div className="absolute right-0 flex items-center gap-6">
                             <NotificationCenter />
-                            <Link
-                                to="/faq"
-                                className={`text-sm font-bold transition-colors tracking-wide ${location.pathname === '/faq' ? 'text-violet-400' : 'text-white hover:text-violet-400'}`}
-                            >
-                                FAQ
-                            </Link>
                             {userState.isAuthenticated ? (
                                 <div className="flex items-center gap-4">
                                     {isCreator && (
@@ -74,14 +69,6 @@ const Layout = () => {
                                             {isCreatorMenuOpen && (
                                                 <div className="absolute right-0 mt-2 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in duration-200">
                                                     <div className="p-2 space-y-[9px]">
-                                                        <Link
-                                                            to="/dashboard"
-                                                            onClick={() => setIsCreatorMenuOpen(false)}
-                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                                        >
-                                                            <LayoutDashboard size={16} className="text-violet-500" />
-                                                            <span>Dashboard</span>
-                                                        </Link>
                                                         <Link
                                                             to={`/author/${userState.authorId}/manage-works`}
                                                             onClick={() => setIsCreatorMenuOpen(false)}
@@ -123,6 +110,14 @@ const Layout = () => {
                                                         >
                                                             <DollarSign size={16} className="text-violet-500" />
                                                             <span>Money</span>
+                                                        </Link>
+                                                        <Link
+                                                            to="/manifesto"
+                                                            onClick={() => setIsCreatorMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                        >
+                                                            <BookOpen size={16} className="text-violet-500" />
+                                                            <span>Manifesto</span>
                                                         </Link>
                                                         <div className="h-px bg-white/5 my-1"></div>
                                                         <Link

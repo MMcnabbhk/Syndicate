@@ -6,6 +6,7 @@ import apiRouter from './routes/api.js';
 import syndicationRouter from './routes/syndication.js';
 import uploadRouter from './routes/uploads.js';
 import billingRouter from './routes/billing.js';
+import communityRouter from './routes/community.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,6 +20,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Anti-scraping protection - block AI crawlers
+import blockAICrawlers from './middleware/antiScraping.js';
+app.use(blockAICrawlers);
 
 // Mount billing specifically before global json parser to handle raw webhooks if needed
 // or just ensure ordering is correct for the internal express.raw call
@@ -70,6 +75,7 @@ app.use('/api/auth', authRouter);
 app.use('/api', apiRouter);
 app.use('/api/syndication', syndicationRouter);
 app.use('/api/uploads', uploadRouter);
+app.use('/api/community', communityRouter);
 
 // Serve static files from the public directory
 app.use(express.static('public'));

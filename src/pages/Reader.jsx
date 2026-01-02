@@ -5,6 +5,7 @@ import { useNovel, useChapters } from '../hooks/useData';
 import { useStore } from '../context/StoreContext';
 import { useRelativeSchedule } from '../hooks/useRelativeSchedule';
 import { ArrowLeft, Settings, Headphones, Star, CheckCircle, Loader2 } from 'lucide-react';
+import { Helmet } from 'react-helmet';
 
 const Reader = () => {
     const { bookId, chapterId } = useParams();
@@ -69,6 +70,12 @@ const Reader = () => {
 
     return (
         <div className="min-h-screen bg-[#333333]">
+            <Helmet>
+                <meta name="robots" content="noai, noimageai" />
+                <meta name="googlebot" content="noai" />
+                <meta name="googlebot-news" content="nosnippet" />
+            </Helmet>
+
             {/* Toolbar */}
             <div className="sticky top-0 z-40 bg-[#333333]/90 backdrop-blur border-b border-white/5 px-4 h-14 flex items-center justify-between">
                 <Link to={`/book/${bookId}`} className="text-zinc-400 hover:text-white"><ArrowLeft size={20} /></Link>
