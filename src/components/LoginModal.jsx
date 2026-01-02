@@ -15,39 +15,28 @@ const LoginModal = () => {
         e.preventDefault();
         setLoading(true);
 
-        // DEV PATH: If email is "sample@example.com" (or similar dev emails), use dev-login
-        if (email.toLowerCase().includes('sample') || email.toLowerCase().includes('creator')) {
-            try {
-                const res = await fetch('http://localhost:4000/api/auth/dev-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email }),
-                    credentials: 'include' // Important for session cookies
-                });
+        // DEV PATH: Use dev-login for ALL emails in this environment to ensure session availability
+        try {
+            const res = await fetch('http://localhost:4000/api/auth/dev-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email }),
+                credentials: 'include' // Important for session cookies
+            });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    login(data.user); // Update local store state with full user data including authorId
-                    closeLoginModal();
-                } else {
-                    console.error("Dev login failed");
-                    alert("Login failed. Please verify the server is running.");
-                }
-            } catch (err) {
-                console.error("Dev login error", err);
-                alert("Network error: Could not reach the server.");
-            } finally {
-                setLoading(false);
+            if (res.ok) {
+                const data = await res.json();
+                login(data.user); // Update local store state with full user data including authorId
+                closeLoginModal();
+            } else {
+                console.error("Dev login failed");
+                alert("Login failed. Please verify the server is running.");
             }
-            return;
-        }
-
-        // Mock fallback for other emails
-        setLoading(false);
-        if (email.toLowerCase().includes('creator')) {
-            login('creator');
-        } else {
-            login('reader');
+        } catch (err) {
+            console.error("Dev login error", err);
+            alert("Network error: Could not reach the server.");
+        } finally {
+            setLoading(false);
         }
     };
 

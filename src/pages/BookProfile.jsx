@@ -85,17 +85,21 @@ const BookProfile = () => {
                     {/* Info */}
                     <div className="mt-4 flex-1 text-center md:text-left">
                         <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{book.title}</h1>
-                        <p className="text-2xl text-zinc-400 mb-6">
-                            by <span className="text-white font-medium">{book.author}</span>
+                        <p className="text-2xl text-zinc-400">
+                            by <Link to={`/author/${book.authorId}`} className="text-white font-medium hover:text-violet-400 hover:underline transition-colors">{book.author}</Link>
                             {book.narrator && (
                                 <span className="block text-lg text-zinc-500 mt-1">Narrated by <span className="text-zinc-300">{book.narrator}</span></span>
                             )}
                         </p>
 
+                        <div style={{ height: '10px' }}></div>
+                        <p className="text-violet-400 font-medium text-lg">{book.genre}</p>
+                        <div style={{ height: '10px' }}></div>
+
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-zinc-400 text-sm" style={{ marginBottom: '36px' }}>
                             <span className="flex items-center gap-1 bg-zinc-800 px-3 py-1 rounded-full"><Star size={14} className="text-yellow-500" /> {book.rating}</span>
                             <span className="flex items-center gap-1 px-3 py-1 border border-zinc-700 rounded-full"><Clock size={14} /> {book.length}</span>
-                            <span className="flex items-center gap-1 px-3 py-1 border border-zinc-700 rounded-full">Freq: {book.frequencyInterval} Days</span>
+                            <span className="flex items-center gap-1 px-3 py-1 border border-zinc-700 rounded-full">Freq: {book.frequency}</span>
                         </div>
 
 
@@ -146,7 +150,7 @@ const BookProfile = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-4">
+                            <div className="flex flex-col gap-[10px]">
                                 {(chapters || []).map((chapter, index) => {
                                     let status = 'locked';
                                     let unlockText = `Unlocks day ${index * book.frequencyInterval}`; // Approx for preview

@@ -1,17 +1,15 @@
 
 import db from './src/server/db.js';
-import 'dotenv/config';
 
-async function check() {
-    console.log('--- Checking Users ---');
-    const users = await db.query('SELECT id, email, role FROM users');
-    console.table(users.rows);
-
-    console.log('\n--- Checking Authors ---');
-    const authors = await db.query('SELECT id, user_id, name, handle FROM authors');
-    console.table(authors.rows);
-
-    process.exit();
+async function checkSchema() {
+    try {
+        const { rows } = await db.query('SHOW COLUMNS FROM authors');
+        console.log('Authors Columns:', JSON.stringify(rows, null, 2));
+        process.exit(0);
+    } catch (err) {
+        console.error('Error querying schema:', err);
+        process.exit(1);
+    }
 }
 
-check();
+checkSchema();

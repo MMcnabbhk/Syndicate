@@ -64,7 +64,8 @@ const AuthorProfile = () => {
     return (
         <div className="bg-[#09090b] min-h-screen pb-40 border-t border-white/5">
             {/* Header / Nav Back */}
-            <div className="container pt-8 pb-4 flex items-center justify-between">
+            {/* Header / Nav Back */}
+            <div className="container pt-[120px] pb-4 flex items-center justify-between">
                 <Link to="/discover" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
                     <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
                         <ChevronLeft size={16} />
@@ -127,29 +128,29 @@ const AuthorProfile = () => {
                             <div className="flex flex-col xl:flex-row gap-6 mb-[20px]">
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div>
-                                        <h1 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-tight">{author.name}</h1>
+                                        <h1 className="text-2xl md:text-4xl font-black text-white mb-2 tracking-tight">{author.name}</h1>
 
                                         {author.genre && <span className="text-violet-400 font-bold text-lg tracking-wider uppercase block mb-6">{author.genre}</span>}
                                         <div style={{ height: '10px' }}></div>
 
                                         {/* External Platforms Buttons */}
                                         <div className="flex flex-wrap gap-3 mb-6">
-                                            {author.amazonUrl && author.amazonUrl.length > 0 && (
-                                                <a href={author.amazonUrl} target="_blank" rel="noopener noreferrer"
+                                            {(author.amazonUrl || author.amazon_url) && (
+                                                <a href={author.amazonUrl || author.amazon_url} target="_blank" rel="noopener noreferrer"
                                                     className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
                                                     style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
                                                     <ShoppingBag size={14} /> Amazon Author
                                                 </a>
                                             )}
-                                            {author.goodreadsUrl && author.goodreadsUrl.length > 0 && (
-                                                <a href={author.goodreadsUrl} target="_blank" rel="noopener noreferrer"
+                                            {(author.goodreadsUrl || author.goodreads_url) && (
+                                                <a href={author.goodreadsUrl || author.goodreads_url} target="_blank" rel="noopener noreferrer"
                                                     className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
                                                     style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
                                                     <BookOpen size={14} /> Goodreads
                                                 </a>
                                             )}
-                                            {author.spotifyUrl && author.spotifyUrl.length > 0 && (
-                                                <a href={author.spotifyUrl} target="_blank" rel="noopener noreferrer"
+                                            {(author.spotifyUrl || author.spotify_url) && (
+                                                <a href={author.spotifyUrl || author.spotify_url} target="_blank" rel="noopener noreferrer"
                                                     className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border border-zinc-700/50 rounded-full text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
                                                     style={{ color: '#71717a', borderColor: 'rgba(63, 63, 70, 0.5)' }}>
                                                     <Music size={14} /> Spotify
@@ -194,7 +195,7 @@ const AuthorProfile = () => {
                                                 {isSubscribed && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                                             </div>
                                             <span className="text-sm font-medium text-white">
-                                                Update me on {author.name}
+                                                Update me on new Works from {author.name}
                                             </span>
                                         </div>
                                     </div>
@@ -209,7 +210,23 @@ const AuthorProfile = () => {
                                             <div className="relative aspect-video bg-black rounded-xl overflow-hidden group cursor-pointer border border-white/10" onClick={() => setActiveVideo(true)}>
                                                 {!activeVideo ? (
                                                     <div className="w-full h-full relative">
-                                                        <img src={author.profile_image_url} className="w-full h-full object-cover opacity-60 blur-sm group-hover:opacity-40 transition-opacity" alt="Video thumbnail" />
+                                                        <img
+                                                            src={(() => {
+                                                                const url = author.videoIntroductions[0].url;
+                                                                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                                                                    // Extract video ID handles v=, embed/, shorts/
+                                                                    const videoId = url.split('v=')[1]?.split('&')[0] ||
+                                                                        url.split('embed/')[1]?.split('?')[0] ||
+                                                                        url.split('shorts/')[1]?.split('?')[0] ||
+                                                                        url.split('/').pop();
+                                                                    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                                                                }
+                                                                return author.profile_image_url;
+                                                            })()}
+                                                            onError={(e) => { e.target.src = author.profile_image_url; }}
+                                                            className="w-full h-full object-cover opacity-60 blur-sm group-hover:opacity-40 transition-opacity"
+                                                            alt="Video thumbnail"
+                                                        />
                                                         <div className="absolute inset-0 flex items-center justify-center">
                                                             <div className="w-16 h-16 bg-violet-600 rounded-full flex items-center justify-center shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform">
                                                                 <Play fill="white" className="text-white ml-1" size={28} />
@@ -224,7 +241,10 @@ const AuthorProfile = () => {
                                                         /* Simple check to see if it's Vimeo or YouTube and format accordingly */
                                                         src={author.videoIntroductions[0].url.includes('vimeo')
                                                             ? `https://player.vimeo.com/video/${author.videoIntroductions[0].url.split('/').pop()}?autoplay=1`
-                                                            : author.videoIntroductions[0].url.replace('watch?v=', 'embed/').split('&')[0] + '?autoplay=1'}
+                                                            : author.videoIntroductions[0].url
+                                                                .replace('watch?v=', 'embed/')
+                                                                .replace('shorts/', 'embed/')
+                                                                .split('&')[0] + '?autoplay=1'}
                                                         className="w-full h-full"
                                                         frameBorder="0"
                                                         allow="autoplay; fullscreen; picture-in-picture"
@@ -235,9 +255,12 @@ const AuthorProfile = () => {
                                         </div>
                                     </div>
                                 )}
+                                {/* Spacer below video */}
+                                {author.videoIntroductions && author.videoIntroductions.length > 0 && <div style={{ height: '20px' }}></div>}
                             </div>
 
                             {/* Bio Box */}
+                            <div style={{ height: '20px' }}></div>
                             <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-8 backdrop-blur-sm shadow-xl">
                                 <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">About The Creator</h3>
                                 <div className="prose prose-invert prose-lg max-w-none text-zinc-300 font-light leading-relaxed">
@@ -249,6 +272,7 @@ const AuthorProfile = () => {
                         <div className="space-y-16">
                             {/* Works Section */}
                             <div>
+                                <div style={{ height: '20px' }}></div>
                                 <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                                     Works
                                     <span className="w-8 h-[2px] bg-violet-500 block"></span>

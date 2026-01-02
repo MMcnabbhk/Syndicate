@@ -25,6 +25,7 @@ import Discover from './pages/Discover';
 import AuthorProfile from './pages/AuthorProfile';
 import AuthorContribution from './pages/AuthorContribution';
 import ManageWorks from './pages/ManageWorks';
+import EditChapter from './pages/EditChapter';
 import CreatorProfile from './pages/CreatorProfile';
 import FansAndContributors from './pages/FansAndContributors';
 import Money from './pages/Money';
@@ -56,7 +57,8 @@ function App() {
             <Route path="author/:id/contribute" element={<AuthorContribution />} />
             <Route path="read/:bookId/:chapterId" element={<Reader />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="manage-works" element={<ManageWorks />} />
+            <Route path="author/:id/manage-works" element={<ManageWorks />} />
+            <Route path="author/:authorId/work/:workId/chapter/:chapterId/edit" element={<EditChapter />} />
             <Route path="manage-profile" element={<CreatorProfile />} />
             <Route path="community" element={<FansAndContributors />} />
             <Route path="money" element={<Money />} />

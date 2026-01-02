@@ -2,7 +2,7 @@
 import db from '../db.js';
 
 export default class Novel {
-    constructor({ id, author_id, title, description, cover_image_url, status, price_monthly, published_at, subscribers_count, lifetime_earnings, genre }) {
+    constructor({ id, author_id, title, description, cover_image_url, status, price_monthly, published_at, subscribers_count, lifetime_earnings, genre, author_name, frequency }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -14,11 +14,18 @@ export default class Novel {
         this.subscribers_count = subscribers_count || 0;
         this.lifetime_earnings = lifetime_earnings || 0;
         this.genre = genre || null;
+        this.author = author_name || null;
+        this.frequency = frequency || 'Daily';
     }
 
     static async findAll() {
         try {
-            const { rows } = await db.query('SELECT * FROM novels');
+            const sql = `
+                SELECT n.*, a.name as author_name 
+                FROM novels n 
+                LEFT JOIN authors a ON n.author_id = a.id
+            `;
+            const { rows } = await db.query(sql);
             return rows.map(row => new Novel(row));
         } catch (err) {
             console.error("Database error in Novel.findAll:", err.message);
@@ -28,7 +35,13 @@ export default class Novel {
     }
 
     static async findById(id) {
-        const { rows } = await db.query('SELECT * FROM novels WHERE id = ?', [id]);
+        const sql = `
+            SELECT n.*, a.name as author_name 
+            FROM novels n 
+            LEFT JOIN authors a ON n.author_id = a.id
+            WHERE n.id = ?
+        `;
+        const { rows } = await db.query(sql, [id]);
         return rows.length ? new Novel(rows[0]) : null;
     }
 
@@ -41,9 +54,9 @@ export default class Novel {
     }
 
     static async update(id, data) {
-        const { title, description, cover_image_url, status, price_monthly } = data;
-        const sql = `UPDATE novels SET title = ?, description = ?, cover_image_url = ?, status = ?, price_monthly = ? WHERE id = ?`;
-        await db.query(sql, [title, description, cover_image_url, status, price_monthly, id]);
+        const { title, description, cover_image_url, status, price_monthly, genre } = data;
+        const sql = `UPDATE novels SET title = ?, description = ?, cover_image_url = ?, status = ?, price_monthly = ?, genre = ? WHERE id = ?`;
+        await db.query(sql, [title, description, cover_image_url, status, price_monthly, genre, id]);
         return this.findById(id);
     }
 

@@ -34,10 +34,11 @@ const Layout = () => {
                 <header className="sticky top-0 z-50 bg-[#333333]/80 backdrop-blur-md border-b border-white/5">
                     <div className="container h-16 flex items-center justify-center relative">
 
-                        <div className="absolute left-0 flex items-center">
-                            <Link to="/" className="flex items-center gap-2 font-bold text-3xl" style={{ color: '#cc5500' }}>
+                        <div className="absolute left-0 flex flex-col justify-center h-full">
+                            <Link to="/" className="flex items-center gap-2 font-bold text-3xl leading-none" style={{ color: '#cc5500' }}>
                                 <span>Syndicate</span>
                             </Link>
+                            <span className="text-xs font-bold tracking-wider mt-[5px]" style={{ color: '#cc5500' }}>Create. Share. Save Humanity.</span>
                         </div>
 
                         <nav className="hidden md:flex items-center gap-4">
@@ -82,7 +83,7 @@ const Layout = () => {
                                                             <span>Dashboard</span>
                                                         </Link>
                                                         <Link
-                                                            to="/manage-works"
+                                                            to={`/author/${userState.authorId}/manage-works`}
                                                             onClick={() => setIsCreatorMenuOpen(false)}
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >

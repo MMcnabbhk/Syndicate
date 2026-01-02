@@ -50,11 +50,11 @@ export default class Author {
         try {
             const sql = `
                 SELECT a.*, 
-                (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
-                (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
-                (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
-                (SELECT COUNT(*) FROM poetry_collections WHERE author_id = a.id) as collection_count,
                 (SELECT COUNT(*) FROM novels WHERE author_id = a.id) as novel_count
+                -- (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
+                -- (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
+                -- (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
+                -- (SELECT COUNT(*) FROM poetry_collections WHERE author_id = a.id) as collection_count
                 FROM authors a
             `;
             const { rows } = await db.query(sql);

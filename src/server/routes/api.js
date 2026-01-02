@@ -1,4 +1,3 @@
-// src/server/routes/api.js
 import { Router } from 'express';
 
 // Placeholder controller functions – to be implemented
@@ -6,6 +5,7 @@ import Poem from '../models/Poem.js';
 import ShortStory from '../models/ShortStory.js';
 import Audiobook from '../models/Audiobook.js';
 import Novel from '../models/Novel.js';
+import Chapter from '../models/Chapter.js';
 import PoetryCollection from '../models/PoetryCollection.js';
 import PoetryCollectionItem from '../models/PoetryCollectionItem.js';
 import AudiobookChapter from '../models/AudiobookChapter.js';
@@ -162,6 +162,32 @@ router.get('/novels/:id', getOne(Novel));
 router.post('/novels', validateNovel, create(Novel));
 router.put('/novels/:id', update(Novel));
 router.delete('/novels/:id', remove(Novel));
+router.get('/novels/:id/chapters', async (req, res) => {
+    try {
+        const chapters = await Chapter.findAllByNovelId(req.params.id);
+        res.json(chapters);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/chapters', async (req, res) => {
+    try {
+        const { novel_id, title, chapter_number, content_html } = req.body;
+        if (!novel_id || !title || !chapter_number) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const chapter = await Chapter.create(req.body);
+        res.status(201).json(chapter);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Chapters specific endpoints (Get one, Update, Delete)
+router.get('/chapters/:id', getOne(Chapter));
+router.put('/chapters/:id', update(Chapter));
+router.delete('/chapters/:id', remove(Chapter));
 
 // Audiobook streaming endpoint (placeholder)
 router.get('/audiobooks/:id/stream', (req, res) => {
@@ -169,14 +195,7 @@ router.get('/audiobooks/:id/stream', (req, res) => {
 });
 
 // Updated comments endpoint to accept content_type and content_id
-// Authors endpoints
-router.get('/authors', getAll(Author));
-router.get('/authors/:id', getOne(Author));
-router.post('/authors', create(Author));
-router.put('/authors/:id', update(Author));
-router.delete('/authors/:id', remove(Author));
-
-// Current Session Author Endpoints
+// Current Session Author Endpoints - MUST be before /authors/:id
 router.get('/authors/me', isAuthenticated, async (req, res) => {
     try {
         const author = await Author.findByUserId(req.user.id);
@@ -190,7 +209,9 @@ router.get('/authors/me', isAuthenticated, async (req, res) => {
     }
 });
 
+// Current Session Author Endpoints
 router.put('/authors/me', isAuthenticated, async (req, res) => {
+    console.log('[API Debug] PUT /authors/me called. User:', req.user ? req.user.id : 'Unauthenticated');
     try {
         const author = await Author.findByUserId(req.user.id);
         if (!author) {
@@ -203,6 +224,14 @@ router.put('/authors/me', isAuthenticated, async (req, res) => {
     }
 });
 
+// Authors endpoints
+router.get('/authors', getAll(Author));
+router.get('/authors/:id', getOne(Author));
+router.post('/authors', create(Author));
+router.put('/authors/:id', update(Author));
+router.delete('/authors/:id', remove(Author));
+
+// Combined Profile Data endpoint
 // Combined Profile Data endpoint
 // Combined Profile Data endpoint
 router.get('/authors/:id/profile', async (req, res) => {
@@ -210,25 +239,61 @@ router.get('/authors/:id/profile', async (req, res) => {
         const author = await Author.findById(req.params.id);
         if (!author) return res.status(404).json({ error: 'Author not found' });
 
-        // Fetch works (in a real app, optimize with joins or specific author_id queries in models)
-        // Here we'll just filter after fetching all or assume specific methods exist
         const [poems, stories, audiobooks, collections, novels] = await Promise.all([
-            Poem.findAll(),
-            ShortStory.findAll(),
-            Audiobook.findAll(),
-            PoetryCollection.findAll(),
-            Novel.findAll()
+            // Return empty arrays for tables that don't exist yet to prevent crashes
+            Promise.resolve([]),
+            Promise.resolve([]),
+            Promise.resolve([]),
+            Promise.resolve([]),
+            Novel.findAll() // Novels table exists and works
+            /* 
+            Poem.findAll().catch(() => []), 
+            ShortStory.findAll().catch(() => []),
+            Audiobook.findAll().catch(() => []),
+            PoetryCollection.findAll().catch(() => []),
+            */
         ]);
 
+        const sortByOrder = (a, b) => (a.display_order || 0) - (b.display_order || 0);
+
         const authorWorks = {
-            poems: poems.filter(p => p.author_id == req.params.id),
-            stories: stories.filter(s => s.author_id == req.params.id),
-            audiobooks: audiobooks.filter(a => a.author_id == req.params.id),
-            collections: collections.filter(c => c.author_id == req.params.id),
-            novels: novels.filter(n => n.author_id == req.params.id)
+            poems: poems.filter(p => p.author_id == req.params.id).sort(sortByOrder),
+            stories: stories.filter(s => s.author_id == req.params.id).sort(sortByOrder),
+            audiobooks: audiobooks.filter(a => a.author_id == req.params.id).sort(sortByOrder),
+            collections: collections.filter(c => c.author_id == req.params.id).sort(sortByOrder),
+            novels: novels.filter(n => n.author_id == req.params.id).sort(sortByOrder)
         };
 
         res.json({ author, works: authorWorks });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Reorder Works Endpoint
+router.post('/works/reorder', isAuthenticated, async (req, res) => {
+    const { updates } = req.body; // Expects array of { type, id, order }
+
+    if (!updates || !Array.isArray(updates)) {
+        return res.status(400).json({ error: 'Invalid updates format' });
+    }
+
+    try {
+        await Promise.all(updates.map(async (update) => {
+            let Model;
+            switch (update.type) {
+                case 'Novel': Model = Novel; break;
+                case 'Short Fiction': Model = ShortStory; break;
+                case 'Poem': Model = Poem; break;
+                case 'Audiobook': Model = Audiobook; break;
+                // Add others as needed
+            }
+
+            if (Model) {
+                await Model.update(update.id, { display_order: update.order });
+            }
+        }));
+        res.json({ message: 'Order updated successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

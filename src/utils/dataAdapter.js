@@ -20,8 +20,13 @@ export const adaptNovelForUI = (novel) => {
         author: novel.author || 'Unknown Author',
         genre: novel.genre || 'Literary Fiction',
         // Keep original SQL fields for reference
+        // Keep original SQL fields for reference
         cover_image_url: novel.cover_image_url,
-        description: novel.description
+        description: novel.description,
+        externalLinks: novel.externalLinks || [],
+        authorId: novel.author_id,
+        frequency: novel.frequency,
+        frequencyInterval: novel.frequency === 'Every 3 Days' ? 3 : novel.frequency === 'Every 7 Days' ? 7 : 1
     };
 };
 

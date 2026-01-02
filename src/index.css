@@ -128,5 +128,24 @@ a {
 
   .std-input {
     @apply w-full bg-[#1A1A1A] border border-zinc-600 rounded-lg px-4 pt-3 pb-[10px] text-white focus:outline-none focus:border-zinc-600 transition-colors placeholder-zinc-500;
+    color: white !important;
   }
-}/* force rebuild */
+
+  /* Force white text in the New Work editor and all its descendants to override pasted styles */
+  .new-work-editor,
+  .new-work-editor * {
+    color: white !important;
+  }
+
+  /* Re-implement placeholder behavior for contentEditable */
+  .new-work-editor:empty:before {
+    content: attr(data-placeholder);
+    color: #71717a !important;
+    /* zinc-500 */
+    font-family: var(--font-sans);
+    pointer-events: none;
+    display: block;
+  }
+}
+
+/* force rebuild */

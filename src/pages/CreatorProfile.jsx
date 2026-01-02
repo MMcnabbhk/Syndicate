@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { User, Save, MapPin, Link as LinkIcon, Twitter, Instagram, Globe, Video, BookOpen, Music, ShoppingBag, Book, Linkedin, Cloud, Send, Facebook, AtSign, X, MessageSquare, Users, BarChart } from 'lucide-react';
+import { User, Save, MapPin, Link as LinkIcon, Twitter, Instagram, Globe, Video, BookOpen, Music, ShoppingBag, Book, Linkedin, Cloud, Send, Facebook, AtSign, X, MessageSquare, Users, BarChart, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 const CreatorProfile = () => {
     const { userState } = useStore();
     const [isLoading, setIsLoading] = useState(false);
+    const [saveStatus, setSaveStatus] = useState({ type: '', message: '' }); // type: 'success' | 'error' | ''
+    const [adminVideoActive, setAdminVideoActive] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
     const [errors, setErrors] = useState({});
 
@@ -53,7 +55,7 @@ const CreatorProfile = () => {
     React.useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/authors/me');
+                const response = await fetch('http://localhost:4000/api/authors/me', { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
 
@@ -189,7 +191,7 @@ const CreatorProfile = () => {
 
         // Short Description (Bio) - Min 50, Max 60
         const bioWords = formData.bio?.split(/\s+/).filter(Boolean).length || 0;
-        if (bioWords < 50) newErrors.bio = `Minimum 50 words required (current: ${bioWords})`;
+        if (bioWords < 10) newErrors.bio = `Minimum 10 words required (current: ${bioWords})`;
         else if (bioWords > 60) newErrors.bio = `Maximum 60 words allowed (current: ${bioWords})`;
 
         // About You - Min 100
@@ -240,18 +242,21 @@ const CreatorProfile = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(payload)
             });
 
             if (response.ok) {
-                alert('Profile updated successfully!');
+                setSaveStatus({ type: 'success', message: 'Profile updated successfully!' });
+                // Clear success message after 3 seconds
+                setTimeout(() => setSaveStatus({ type: '', message: '' }), 3000);
             } else {
                 const errorData = await response.json();
-                alert(`Update failed: ${errorData.error || 'Unknown error'}`);
+                setSaveStatus({ type: 'error', message: `Update failed: ${errorData.error || 'Unknown error'}` });
             }
         } catch (error) {
             console.error("Save error:", error);
-            alert('A network error occurred while saving.');
+            setSaveStatus({ type: 'error', message: 'A network error occurred while saving.' });
         } finally {
             setIsLoading(false);
         }
@@ -354,10 +359,7 @@ const CreatorProfile = () => {
                                         name="bio"
                                         value={formData.bio}
                                         onChange={(e) => {
-                                            const words = e.target.value.split(/\s+/).filter(Boolean);
-                                            if (words.length <= 60 || e.target.value.length < formData.bio.length) {
-                                                handleChange(e);
-                                            }
+                                            handleChange(e);
                                         }}
                                         rows={6}
                                         placeholder="This description presents on the Discover page. It needs a good Hook."
@@ -801,14 +803,26 @@ const CreatorProfile = () => {
                                     <label className="text-lg font-bold text-violet-500 mb-1">How This Works</label>
                                     <p className="text-xs mb-4 text-zinc-400">Use social posts or paid ads to drive traffic to your works pages.</p>
                                 </div>
-                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center group cursor-pointer hover:border-violet-500/30 transition-all">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none" />
-                                    <div className="flex flex-col items-center gap-2">
-                                        <div className="w-12 h-12 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-110 group-hover:bg-violet-500/30 transition-all">
-                                            <Video size={24} />
-                                        </div>
-                                        <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Admin Video Placement</span>
-                                    </div>
+                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center group cursor-pointer hover:border-violet-500/30 transition-all" onClick={() => setAdminVideoActive(true)}>
+                                    {!adminVideoActive ? (
+                                        <>
+                                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent pointer-events-none" />
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="w-12 h-12 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-110 group-hover:bg-violet-500/30 transition-all">
+                                                    <Video size={24} />
+                                                </div>
+                                                <span className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Watch Tutorial</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <iframe
+                                            src="https://player.vimeo.com/video/1040398226?autoplay=1"
+                                            className="w-full h-full"
+                                            frameBorder="0"
+                                            allow="autoplay; fullscreen; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -832,6 +846,12 @@ const CreatorProfile = () => {
                         </button>
                         {Object.keys(errors).length > 0 && (
                             <p className="text-red-500 text-sm mt-4 font-bold">Check the required fields above.</p>
+                        )}
+                        {saveStatus.message && (
+                            <div className={`mt-4 px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 ${saveStatus.type === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                {saveStatus.type === 'success' ? <CheckCircle2 size={18} /> : <X size={18} />}
+                                {saveStatus.message}
+                            </div>
                         )}
                     </div>
                     <div style={{ height: '50px' }} aria-hidden="true" />

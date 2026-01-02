@@ -1,24 +1,18 @@
 
 import db from './src/server/db.js';
-import 'dotenv/config';
 
-async function updateProfileImageToAsset() {
-    console.log('--- Updating Profile Image to Asset ---');
-
-    const authorID = '1';
-    const newProfileImage = '/assets/michael_james_profile.jpg';
-
+async function updateProfileImage() {
     try {
-        await db.query('UPDATE authors SET profile_image_url = ? WHERE id = ?', [
-            newProfileImage,
-            authorID
+        await db.query('UPDATE Authors SET profile_image_url = ? WHERE id = ?', [
+            '/assets/michael_james_profile.jpg',
+            '1'
         ]);
-        console.log(`✅ Updated Author ${authorID} profile image to: ${newProfileImage}`);
-    } catch (e) {
-        console.error('❌ Error updating profile:', e.message);
+        console.log('✅ Updated Author Profile Image to /assets/michael_james_profile.jpg');
+        process.exit(0);
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
     }
-
-    process.exit(0);
 }
 
-updateProfileImageToAsset();
+updateProfileImage();

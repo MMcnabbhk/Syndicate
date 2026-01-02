@@ -1,29 +1,53 @@
+
 import db from '../db.js';
 
-class Chapter {
-    constructor(data) {
-        this.id = data.id;
-        this.work_id = data.work_id;
-        this.content_type = data.content_type; // 'novel', 'audiobook', etc.
-        this.chapter_number = data.chapter_number;
-        this.title = data.title;
-        this.content_html = data.content_html;
-        this.release_day = data.release_day; // Relative day from start (0, 7, 14, etc.)
-        this.created_at = data.created_at;
+export default class Chapter {
+    constructor({ id, novel_id, title, chapter_number, content_html, status, created_at }) {
+        this.id = id;
+        this.novel_id = novel_id;
+        this.title = title;
+        this.chapter_number = chapter_number;
+        this.content_html = content_html;
+        this.status = status;
+        this.created_at = created_at;
     }
 
-    static async findAllByWorkId(workId) {
-        const [rows] = await db.query('SELECT * FROM chapters WHERE work_id = ? ORDER BY chapter_number ASC', [workId]);
-        return rows.map(row => new Chapter(row));
+    static async findAllByNovelId(novelId) {
+        try {
+            console.log(`Chapter.findAllByNovelId called for novelId: ${novelId}`);
+            const sql = 'SELECT * FROM chapters WHERE novel_id = ? ORDER BY chapter_number ASC';
+            const { rows } = await db.query(sql, [novelId]);
+            console.log(`Chapter.findAllByNovelId result count: ${rows.length}`);
+            return rows.map(row => new Chapter(row));
+        } catch (err) {
+            console.error("Database error in Chapter.findAllByNovelId:", err.message);
+            return [];
+        }
+    }
+
+    static async findById(id) {
+        const { rows } = await db.query('SELECT * FROM chapters WHERE id = ?', [id]);
+        return rows.length ? new Chapter(rows[0]) : null;
     }
 
     static async create(data) {
-        const [result] = await db.query(
-            'INSERT INTO chapters (work_id, content_type, chapter_number, title, content_html, release_day) VALUES (?, ?, ?, ?, ?, ?)',
-            [data.work_id, data.content_type, data.chapter_number, data.title, data.content_html, data.release_day]
-        );
-        return new Chapter({ id: result.insertId, ...data });
+        const { novel_id, title, chapter_number, content_html, status } = data;
+        // Default to release_day = 0 if not provided (available immediately to subscribers)
+        const release_day = data.release_day || 0;
+
+        const sql = `INSERT INTO chapters (novel_id, title, chapter_number, content_html, status, release_day, created_at) 
+                     VALUES (?, ?, ?, ?, ?, ?, NOW())`;
+        const result = await db.query(sql, [novel_id, title, chapter_number, content_html, status || 'draft', release_day]);
+
+        // Return the new chapter object (re-fetching or constructing)
+        // For simplicity in this stack, we'll return the ID and data.
+        return {
+            id: result.insertId,
+            novel_id,
+            title,
+            chapter_number,
+            status,
+            release_day
+        };
     }
 }
-
-export default Chapter;

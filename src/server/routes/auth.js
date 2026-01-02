@@ -49,10 +49,26 @@ router.post('/dev-login', async (req, res) => {
     console.log(`[Dev Login] Attempting login for ${email}`);
 
     try {
-        const user = await User.findByEmail(email);
+        let user = await User.findByEmail(email);
 
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            console.log(`[Dev Login] User not found, creating new dev user for ${email}`);
+            // Auto-create user for dev convenience
+            const role = email.toLowerCase().includes('creator') ? 'creator' : 'reader';
+            user = await User.create({
+                email,
+                display_name: email.split('@')[0],
+                role
+            });
+
+            // If creator, also ensure Author profile exists
+            if (role === 'creator') {
+                await Author.create({
+                    user_id: user.id,
+                    name: user.display_name || 'New Creator',
+                    bio: 'Auto-generated bio for dev user.'
+                });
+            }
         }
 
         // Manually log in the user via Passport
@@ -76,7 +92,7 @@ router.post('/dev-login', async (req, res) => {
                 });
             }).catch(err => {
                 console.error("Error fetching author details:", err);
-                // Return success anyway, just without authorId (though this is the issue we're fixing, better to not block login)
+                // Return success anyway, just without authorId
                 return res.json({
                     success: true,
                     user: {
