@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { User, Save, MapPin, Link as LinkIcon, Twitter, Instagram, Globe, Video, BookOpen, Music, ShoppingBag, Book, Linkedin, Cloud, Send, Facebook, AtSign, X, MessageSquare, Users, BarChart, CheckCircle2 } from 'lucide-react';
+import { User, Save, MapPin, Link as LinkIcon, Twitter, Instagram, Globe, Video, BookOpen, Music, ShoppingBag, Book, Linkedin, Cloud, Send, Facebook, AtSign, X, MessageSquare, Users, BarChart, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { Link } from 'react-router-dom';
 
 const CreatorProfile = () => {
     const { userState } = useStore();
@@ -274,17 +275,28 @@ const CreatorProfile = () => {
     return (
         <div className="min-h-screen bg-[#111111] pb-20 pt-10">
             {/* Page Header (Matches Books/Library Page) */}
-            <header className="container mx-auto px-4 mb-12 flex flex-col items-center text-center">
-                <h1
-                    className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight"
-                    style={{ paddingBottom: '20px', paddingTop: '20px' }}
-                >
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Creator Profile</span>
-                </h1>
-                <p className="text-zinc-400 max-w-2xl text-sm" style={{ textAlign: 'center' }}>
-                    This information appears on your Profile, Discover and Works pages.
-                </p>
-                <div style={{ height: '60px' }} />
+            <header className="container mx-auto px-4 mb-8 relative">
+                <div className="text-center">
+                    <h1
+                        className="text-4xl md:text-5xl font-black text-white tracking-tight"
+                        style={{ paddingTop: '20px', paddingBottom: '10px' }}
+                    >
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Creator Profile</span>
+                    </h1>
+                    <p className="text-zinc-400 text-sm mx-auto" style={{ color: '#a1a1aa' }}>
+                        This information appears on your Profile, Discover and Works pages.
+                    </p>
+                    <div style={{ height: '40px' }}></div>
+                </div>
+
+                <div style={{ position: 'absolute', right: '220px', top: '45px', display: 'block' }}>
+                    {userState.authorId && (
+                        <Link to={`/author/${userState.authorId}`} className="transition-colors" style={{ color: '#a855f7', fontSize: '1.25rem', textDecoration: 'none' }}>
+                            Preview
+                        </Link>
+                    )}
+                </div>
+                <div style={{ height: '40px' }} />
             </header>
 
             <div className="container mx-auto px-4 max-w-5xl">

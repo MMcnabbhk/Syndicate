@@ -7,6 +7,8 @@ import syndicationRouter from './routes/syndication.js';
 import uploadRouter from './routes/uploads.js';
 import billingRouter from './routes/billing.js';
 import communityRouter from './routes/community.js';
+import contactsRouter from './routes/contacts.js';
+import invitesRouter from './routes/invites.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -43,16 +45,21 @@ import User from './models/User.js'; // To init table
 // User.createTableIfNotExists().catch(console.error);
 
 const MySQLSessionStore = MySQLStore(session);
-// const sessionStore = new MySQLSessionStore({
-//     host: process.env.DB_HOST || 'localhost',
-//     user: process.env.DB_USER || 'root',
-//     password: process.env.DB_PASSWORD || 'password',
-//     database: process.env.DB_NAME || 'book_site',
-//     // ... other options
-// });
-
-// Fallback to MemoryStore for development/mock mode to avoid DB crashes
-const sessionStore = new session.MemoryStore();
+const sessionStore = new MySQLSessionStore({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD ?? '',
+    database: process.env.DB_NAME || 'serialized_novels',
+    createDatabaseTable: true,
+    schema: {
+        tableName: 'sessions',
+        columnNames: {
+            session_id: 'session_id',
+            expires: 'expires',
+            data: 'data'
+        }
+    }
+});
 
 app.use(session({
     key: 'syndicate_session_cookie',
@@ -75,6 +82,8 @@ app.use('/api/auth', authRouter);
 app.use('/api', apiRouter);
 app.use('/api/syndication', syndicationRouter);
 app.use('/api/uploads', uploadRouter);
+app.use('/api/contacts', contactsRouter);
+app.use('/api/invites', invitesRouter);
 app.use('/api/community', communityRouter);
 
 // Serve static files from the public directory

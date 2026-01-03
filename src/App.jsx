@@ -31,6 +31,7 @@ import EditChapter from './pages/EditChapter';
 import CreatorProfile from './pages/CreatorProfile';
 import FansAndContributors from './pages/FansAndContributors';
 import Money from './pages/Money';
+import ManageInvites from './pages/ManageInvites';
 import { StoreProvider } from './context/StoreContext';
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
             <Route path="author/:authorId/work/:workId/chapter/:chapterId/edit" element={<EditChapter />} />
             <Route path="manage-profile" element={<CreatorProfile />} />
             <Route path="community" element={<FansAndContributors />} />
+            <Route path="invites" element={<ManageInvites />} />
             <Route path="money" element={<Money />} />
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />

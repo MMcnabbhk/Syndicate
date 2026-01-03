@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import passport from 'passport';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -8,27 +9,121 @@ router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
 
+// Google Contacts Import
+router.get('/google/contacts', passport.authenticate('google', {
+    scope: ['profile', 'email', 'https://www.googleapis.com/auth/contacts.readonly'],
+    state: 'import_contacts'
+}));
+
 // Google OAuth Callback
 router.get('/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login-failed' }), // You might want a better failure page
+    passport.authenticate('google', { failureRedirect: '/login-failed' }),
     (req, res) => {
-        // Successful authentication
-        // Redirect to home page or dashboard - frontend should handle the state update via /auth/me or session cookie
-        res.redirect('http://localhost:5173/'); // Redirect to frontend
+        const isImport = req.query.state === 'import_contacts';
+        res.redirect(isImport ? 'http://localhost:5173/community?import=google' : 'http://localhost:5173/');
     }
 );
 
 // Microsoft OAuth
-router.get('/microsoft', passport.authenticate('microsoft', {
-    // scope: ['user.read'] // Defined in strategy
+router.get('/microsoft', passport.authenticate('microsoft'));
+
+// Microsoft Contacts Import
+router.get('/microsoft/contacts', passport.authenticate('microsoft', {
+    scope: ['user.read', 'Contacts.Read'],
+    state: 'import_contacts'
 }));
 
 router.get('/microsoft/callback',
     passport.authenticate('microsoft', { failureRedirect: '/login-failed' }),
     (req, res) => {
-        res.redirect('http://localhost:5173/');
+        const isImport = req.query.state === 'import_contacts';
+        res.redirect(isImport ? 'http://localhost:5173/community?import=microsoft' : 'http://localhost:5173/');
     }
 );
+
+// Traditional Login
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+        if (err) return next(err);
+        if (!user) return res.status(401).json({ error: info.message || 'Login failed' });
+
+        req.login(user, (err) => {
+            if (err) return next(err);
+            res.json({ success: true, user: user.toPublic() });
+        });
+    })(req, res, next);
+});
+
+// Registration
+router.post('/register', async (req, res) => {
+    const { email, password, display_name } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+    try {
+        const existing = await User.findByEmail(email);
+        if (existing) return res.status(400).json({ error: 'Email already in use' });
+
+        const user = await User.create({ email, password, name: display_name });
+        req.login(user, (err) => {
+            if (err) return res.status(500).json({ error: 'Failed to log in after registration' });
+            res.status(201).json({ success: true, user: user.toPublic() });
+        });
+    } catch (err) {
+        console.error("Registration Error:", err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Magic Link Request
+router.post('/magic-link', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+
+    try {
+        let user = await User.findByEmail(email);
+        if (!user) {
+            // Auto-register for magic link if not exists? User's choice. 
+            // For now, let's require an account or auto-create it.
+            user = await User.create({ email, name: email.split('@')[0] });
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 3600000); // 1 hour
+
+        await User.setMagicToken(email, token, expires);
+
+        // In production, send an email. For now, log to console.
+        const magicUrl = `http://localhost:5173/verify-magic?token=${token}`;
+        console.log(`[MAGIC LINK] Sent to ${email}: ${magicUrl}`);
+
+        res.json({ success: true, message: 'Magic link sent! Check your "inbox" (console in dev).' });
+    } catch (err) {
+        console.error("Magic Link Error:", err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Magic Link Verification
+router.get('/verify-magic', async (req, res) => {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token missing' });
+
+    try {
+        const user = await User.findByMagicToken(token);
+        if (!user) return res.status(401).json({ error: 'Invalid or expired magic link' });
+
+        // Clear token after use
+        await User.setMagicToken(user.email, null, null);
+
+        req.login(user, (err) => {
+            if (err) return res.status(500).json({ error: 'Failed to log in' });
+            res.redirect('http://localhost:5173/');
+        });
+    } catch (err) {
+        console.error("Magic Verification Error:", err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // Apple OAuth
 router.get('/apple', passport.authenticate('apple'));
@@ -57,7 +152,7 @@ router.post('/dev-login', async (req, res) => {
             const role = email.toLowerCase().includes('creator') ? 'creator' : 'reader';
             user = await User.create({
                 email,
-                display_name: email.split('@')[0],
+                name: email.split('@')[0],
                 role
             });
 
@@ -134,7 +229,7 @@ router.get('/me', async (req, res) => {
         res.json({
             isAuthenticated: true,
             user: {
-                ...req.user,
+                ...req.user.toPublic(),
                 authorId
             }
         });

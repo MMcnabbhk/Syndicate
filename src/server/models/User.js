@@ -1,59 +1,48 @@
 import db from '../db.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 class User {
     constructor(data) {
         this.id = data.id;
-        this.google_id = data.google_id;
-        this.microsoft_id = data.microsoft_id;
-        this.apple_id = data.apple_id;
         this.email = data.email;
-        this.display_name = data.display_name;
-        this.avatar_url = data.avatar_url;
+        this.password_hash = data.password_hash;
+        this.magic_token = data.magic_token;
+        this.magic_expires = data.magic_expires;
+        this.name = data.name;
+        this.handle = data.handle;
+        this.bio = data.bio;
+        this.cover_image_url = data.cover_image_url;
         this.role = data.role || 'reader';
+        this.wallet_balance = data.wallet_balance;
+        this.oauth_provider = data.oauth_provider;
+        this.oauth_id = data.oauth_id;
         this.created_at = data.created_at;
+
+        // Aliases for compatibility
+        this.display_name = data.name;
+        this.avatar_url = data.cover_image_url;
     }
 
-    static async createTableIfNotExists() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                google_id VARCHAR(255) UNIQUE,
-                microsoft_id VARCHAR(255) UNIQUE,
-                apple_id VARCHAR(255) UNIQUE,
-                email VARCHAR(255) UNIQUE,
-                display_name VARCHAR(255),
-                avatar_url TEXT,
-                role ENUM('reader', 'creator') DEFAULT 'reader',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-        await db.query(sql);
-
-        // Basic migration attempt to ensure columns exist if table was already created
-        try {
-            await db.query("ALTER TABLE users ADD COLUMN microsoft_id VARCHAR(255) UNIQUE");
-        } catch (e) { /* ignore if exists */ }
-        try {
-            await db.query("ALTER TABLE users ADD COLUMN apple_id VARCHAR(255) UNIQUE");
-        } catch (e) { /* ignore if exists */ }
+    async verifyPassword(password) {
+        if (!this.password_hash) return false;
+        return bcrypt.compare(password, this.password_hash);
     }
 
-    static async findByGoogleId(googleId) {
-        const sql = 'SELECT * FROM users WHERE google_id = ?';
-        const { rows } = await db.query(sql, [googleId]);
-        return rows.length ? new User(rows[0]) : null;
+    static async hashPassword(password) {
+        return bcrypt.hash(password, 10);
     }
 
-    static async findByMicrosoftId(microsoftId) {
-        const sql = 'SELECT * FROM users WHERE microsoft_id = ?';
-        const { rows } = await db.query(sql, [microsoftId]);
-        return rows.length ? new User(rows[0]) : null;
-    }
-
-    static async findByAppleId(appleId) {
-        const sql = 'SELECT * FROM users WHERE apple_id = ?';
-        const { rows } = await db.query(sql, [appleId]);
-        return rows.length ? new User(rows[0]) : null;
+    toPublic() {
+        return {
+            id: this.id,
+            email: this.email,
+            display_name: this.name,
+            handle: this.handle,
+            avatar_url: this.cover_image_url,
+            role: this.role,
+            created_at: this.created_at
+        };
     }
 
     static async findById(id) {
@@ -68,31 +57,49 @@ class User {
         return rows.length ? new User(rows[0]) : null;
     }
 
-    static async create({ googleId, microsoftId, appleId, email, displayName, avatarUrl, role = 'reader' }) {
-        const sql = `
-            INSERT INTO users (google_id, microsoft_id, apple_id, email, display_name, avatar_url, role)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        const result = await db.query(sql, [googleId, microsoftId, appleId, email, displayName, avatarUrl, role]);
-        // result usually has insertId for mysql2
-        try {
-            // For mysql2/promise execute result is [resultHeader, fields]
-            const insertId = result.rows.insertId;
-            return new User({
-                id: insertId,
-                google_id: googleId,
-                microsoft_id: microsoftId,
-                apple_id: appleId,
-                email: email,
-                display_name: displayName,
-                avatar_url: avatarUrl,
-                role: role,
-                created_at: new Date() // Approximate
-            });
-        } catch (e) {
-            console.error("Error creating user object after insert:", e);
-            throw e;
+    static async findByGoogleId(googleId) {
+        const sql = 'SELECT * FROM users WHERE oauth_provider = "google" AND oauth_id = ?';
+        const { rows } = await db.query(sql, [googleId]);
+        return rows.length ? new User(rows[0]) : null;
+    }
+
+    static async findByMicrosoftId(microsoftId) {
+        const sql = 'SELECT * FROM users WHERE oauth_provider = "microsoft" AND oauth_id = ?';
+        const { rows } = await db.query(sql, [microsoftId]);
+        return rows.length ? new User(rows[0]) : null;
+    }
+
+    static async findByAppleId(appleId) {
+        const sql = 'SELECT * FROM users WHERE oauth_provider = "apple" AND oauth_id = ?';
+        const { rows } = await db.query(sql, [appleId]);
+        return rows.length ? new User(rows[0]) : null;
+    }
+
+    static async create({ email, password = null, name = null, handle = null, role = 'reader', oauthProvider = null, oauthId = null, avatarUrl = null }) {
+        let passwordHash = null;
+        if (password) {
+            passwordHash = await this.hashPassword(password);
         }
+
+        const id = crypto.randomUUID();
+        const sql = `
+            INSERT INTO users (id, email, password_hash, name, handle, role, oauth_provider, oauth_id, cover_image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        await db.query(sql, [id, email, passwordHash, name, handle, role, oauthProvider, oauthId, avatarUrl]);
+
+        return this.findById(id);
+    }
+
+    static async setMagicToken(email, token, expires) {
+        const sql = 'UPDATE users SET magic_token = ?, magic_expires = ? WHERE email = ?';
+        await db.query(sql, [token, expires, email]);
+    }
+
+    static async findByMagicToken(token) {
+        const sql = 'SELECT * FROM users WHERE magic_token = ? AND magic_expires > NOW()';
+        const { rows } = await db.query(sql, [token]);
+        return rows.length ? new User(rows[0]) : null;
     }
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { BookOpen, User, Library, PenTool, Search, Headphones, House, LayoutDashboard, ChevronDown, UserCircle, Settings, Users, DollarSign } from 'lucide-react';
+import { BookOpen, User, Library, PenTool, Search, Headphones, House, LayoutDashboard, ChevronDown, UserCircle, Settings, Users, DollarSign, Mail } from 'lucide-react';
 import Footer from './Footer';
 import LoginModal from './LoginModal';
 import CreateAccountModal from './CreateAccountModal';
@@ -75,7 +75,7 @@ const Layout = () => {
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
                                                             <Library size={16} className="text-violet-500" />
-                                                            <span>Manage Works</span>
+                                                            <span>Works</span>
                                                         </Link>
                                                         <Link
                                                             to="/manage-profile"
@@ -83,18 +83,8 @@ const Layout = () => {
                                                             className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                                                         >
                                                             <UserCircle size={16} className="text-violet-500" />
-                                                            <span>Manage Profile</span>
+                                                            <span>Profile</span>
                                                         </Link>
-                                                        {userState.authorId && (
-                                                            <Link
-                                                                to={`/author/${userState.authorId}`}
-                                                                onClick={() => setIsCreatorMenuOpen(false)}
-                                                                className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                                            >
-                                                                <User size={16} className="text-violet-500" />
-                                                                <span>My Profile</span>
-                                                            </Link>
-                                                        )}
                                                         <Link
                                                             to="/community"
                                                             onClick={() => setIsCreatorMenuOpen(false)}
@@ -102,6 +92,14 @@ const Layout = () => {
                                                         >
                                                             <Users size={16} className="text-violet-500" />
                                                             <span>Fans & Contributors</span>
+                                                        </Link>
+                                                        <Link
+                                                            to="/invites"
+                                                            onClick={() => setIsCreatorMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                                        >
+                                                            <Mail size={16} className="text-violet-500" />
+                                                            <span>Invites</span>
                                                         </Link>
                                                         <Link
                                                             to="/money"

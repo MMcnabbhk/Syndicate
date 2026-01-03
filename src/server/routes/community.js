@@ -15,40 +15,13 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ error: 'Unauthorized' });
 };
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', isAuthenticated, async (req, res) => {
     try {
-        let authorId = null;
-
-        // 1. Try to get Author from logged-in user
-        if (req.user) {
-            const potentialIds = [req.user.google_id, req.user.microsoft_id, req.user.apple_id, req.user.id].filter(Boolean);
-            for (const pid of potentialIds) {
-                const author = await Author.findByUserId(pid);
-                if (author) {
-                    authorId = author.id;
-                    break;
-                }
-            }
-        }
-
-        // 2. Fallback: If no author found (or not logged in), default to Michael James (UUID)
-        // This failsafe ensures the demo page always works for the owner
-        if (!authorId) {
-            console.log('Community Stats: using fallback author Michael James');
-            // Check for UUID Michael James first
-            const { rows } = await db.query("SELECT id FROM authors WHERE name = 'Michael James' AND LENGTH(id) > 10");
-            if (rows.length > 0) {
-                authorId = rows[0].id;
-            } else {
-                // Try legacy
-                const { rows: legacy } = await db.query("SELECT id FROM authors WHERE name = 'Michael James'");
-                if (legacy.length > 0) authorId = legacy[0].id;
-            }
-        }
-
-        if (!authorId) {
+        const author = await Author.findByUserId(req.user.id);
+        if (!author) {
             return res.status(404).json({ error: 'Author profile not found' });
         }
+        const authorId = author.id;
 
         // 1. Fetch Fans (Subscriptions)
         // Grouped by Work
@@ -66,11 +39,13 @@ router.get('/stats', async (req, res) => {
         const uniqueFansSql = `
             SELECT 
                 u.id as user_id,
-                u.handle as user_name,
-                u.name as full_name,
+                ANY_VALUE(u.handle) as user_name,
+                ANY_VALUE(u.name) as full_name,
+                ANY_VALUE(u.signup_source) as signup_source,
+                ANY_VALUE(u.signup_creator_id) as signup_creator_id,
                 MIN(s.created_at) as joined_at,
                 COUNT(DISTINCT s.work_id) as total_works,
-                n.title as recent_work_title
+                ANY_VALUE(n.title) as recent_work_title
             FROM subscriptions s
             JOIN novels n ON s.work_id = n.id
             LEFT JOIN users u ON CAST(s.user_id AS CHAR) COLLATE utf8mb4_unicode_ci = CAST(u.id AS CHAR) COLLATE utf8mb4_unicode_ci
@@ -128,19 +103,9 @@ router.get('/stats', async (req, res) => {
  */
 router.delete('/fan/:userId', isAuthenticated, async (req, res) => {
     try {
-        let authorId = null;
-        if (req.user) {
-            const profileIds = [req.user.google_id, req.user.microsoft_id, req.user.apple_id, req.user.id].filter(Boolean);
-            for (const pid of profileIds) {
-                const author = await Author.findByUserId(pid);
-                if (author) {
-                    authorId = author.id;
-                    break;
-                }
-            }
-        }
-
-        if (!authorId) return res.status(403).json({ error: 'Author profile required' });
+        const author = await Author.findByUserId(req.user.id);
+        if (!author) return res.status(404).json({ error: 'Author profile not found' });
+        const authorId = author.id;
 
         const { userId } = req.params;
 

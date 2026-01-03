@@ -2,6 +2,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
 import { Strategy as AppleStrategy } from 'passport-apple';
+import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/User.js';
 import dotenv from 'dotenv';
 
@@ -31,16 +32,23 @@ if (process.env.GOOGLE_CLIENT_ID) {
             let user = await User.findByGoogleId(profile.id);
 
             if (user) {
+                user.accessToken = accessToken;
+                user.refreshToken = refreshToken;
                 return done(null, user);
             }
 
             user = await User.create({
-                googleId: profile.id,
+                oauthId: profile.id,
+                oauthProvider: 'google',
                 email: profile.emails && profile.emails[0] ? profile.emails[0].value : null,
-                displayName: profile.displayName,
+                name: profile.displayName,
                 avatarUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
-                role: 'reader' // Default role
+                role: 'reader'
             });
+
+            // Attach tokens for contact import if needed
+            user.accessToken = accessToken;
+            user.refreshToken = refreshToken;
 
             done(null, user);
         } catch (err) {
@@ -60,15 +68,22 @@ if (process.env.MICROSOFT_CLIENT_ID) {
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await User.findByMicrosoftId(profile.id);
-            if (user) return done(null, user);
+            if (user) {
+                user.accessToken = accessToken;
+                user.refreshToken = refreshToken;
+                return done(null, user);
+            }
 
             user = await User.create({
-                microsoftId: profile.id,
+                oauthId: profile.id,
+                oauthProvider: 'microsoft',
                 email: profile.emails && profile.emails[0] ? profile.emails[0].value : null,
-                displayName: profile.displayName,
-                avatarUrl: null, // Microsoft graph photo requires extra fetch
+                name: profile.displayName,
+                avatarUrl: null,
                 role: 'reader'
             });
+            user.accessToken = accessToken;
+            user.refreshToken = refreshToken;
             done(null, user);
         } catch (err) {
             console.error("Error in Microsoft Strategy:", err);
@@ -95,9 +110,10 @@ if (process.env.APPLE_CLIENT_ID) {
             const name = profile && profile.name ? `${profile.name.firstName} ${profile.name.lastName}` : 'Apple User';
 
             user = await User.create({
-                appleId: idToken.sub,
+                oauthId: idToken.sub,
+                oauthProvider: 'apple',
                 email: email,
-                displayName: name,
+                name: name,
                 avatarUrl: null,
                 role: 'reader'
             });
@@ -108,5 +124,27 @@ if (process.env.APPLE_CLIENT_ID) {
         }
     }));
 }
+
+// Local Strategy
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+}, async (email, password, done) => {
+    try {
+        const user = await User.findByEmail(email);
+        if (!user) {
+            return done(null, false, { message: 'Invalid email or password.' });
+        }
+
+        const isMatch = await user.verifyPassword(password);
+        if (!isMatch) {
+            return done(null, false, { message: 'Invalid email or password.' });
+        }
+
+        return done(null, user);
+    } catch (err) {
+        return done(err);
+    }
+}));
 
 export default passport;

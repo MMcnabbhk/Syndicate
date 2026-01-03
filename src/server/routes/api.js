@@ -20,20 +20,27 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ error: 'Unauthorized' });
 };
 
+import { isAuthorOwner, isNovelOwner, isChapterOwner } from '../middleware/authorize.js';
+import { sanitizeHtml, sanitizeText } from '../utils/sanitize.js';
+
 // Validation middleware
 const validatePoem = (req, res, next) => {
     const { author_id, title, content_html } = req.body;
     if (!author_id || !title || !content_html) {
-        return res.status(400).json({ error: 'Missing required fields: author_id, title, content_html' });
+        return res.status(400).json({ error: 'Missing required fields' });
     }
+    req.body.title = sanitizeText(title);
+    req.body.content_html = sanitizeHtml(content_html);
     next();
 };
 
 const validateShortStory = (req, res, next) => {
     const { author_id, title, content_html } = req.body;
     if (!author_id || !title || !content_html) {
-        return res.status(400).json({ error: 'Missing required fields: author_id, title, content_html' });
+        return res.status(400).json({ error: 'Missing required fields' });
     }
+    req.body.title = sanitizeText(title);
+    req.body.content_html = sanitizeHtml(content_html);
     next();
 };
 
@@ -70,10 +77,12 @@ const validateAudiobookChapter = (req, res, next) => {
 };
 
 const validateNovel = (req, res, next) => {
-    const { author_id, title } = req.body;
-    if (!author_id || !title) {
-        return res.status(400).json({ error: 'Missing required fields: author_id, title' });
+    const { author_id, title, genre } = req.body;
+    if (!author_id || !title || !genre) {
+        return res.status(400).json({ error: 'Missing required fields' });
     }
+    req.body.title = sanitizeText(title);
+    if (req.body.description) req.body.description = sanitizeText(req.body.description);
     next();
 };
 // Generic CRUD handlers (will be bound per content type)
@@ -159,9 +168,20 @@ router.delete('/audiobook-chapters/:id', remove(AudiobookChapter));
 // Novels endpoints
 router.get('/novels', getAll(Novel));
 router.get('/novels/:id', getOne(Novel));
-router.post('/novels', validateNovel, create(Novel));
-router.put('/novels/:id', update(Novel));
-router.delete('/novels/:id', remove(Novel));
+router.post('/novels', isAuthenticated, validateNovel, async (req, res) => {
+    // Check if user owns the author_id
+    try {
+        const author = await Author.findById(req.body.author_id);
+        if (!author || author.user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Forbidden: You can only create works for your own profile' });
+        }
+        create(Novel)(req, res);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+router.put('/novels/:id', isAuthenticated, isNovelOwner, update(Novel));
+router.delete('/novels/:id', isAuthenticated, isNovelOwner, remove(Novel));
 router.get('/novels/:id/chapters', async (req, res) => {
     try {
         const chapters = await Chapter.findAllByNovelId(req.params.id);
@@ -171,12 +191,25 @@ router.get('/novels/:id/chapters', async (req, res) => {
     }
 });
 
-router.post('/chapters', async (req, res) => {
+router.post('/chapters', isAuthenticated, async (req, res) => {
     try {
         const { novel_id, title, chapter_number, content_html } = req.body;
         if (!novel_id || !title || !chapter_number) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
+
+        // Verify ownership of the novel
+        const novel = await Novel.findById(novel_id);
+        if (!novel) return res.status(404).json({ error: 'Novel not found' });
+        const author = await Author.findById(novel.author_id);
+        if (!author || author.user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this work' });
+        }
+
+        // Sanitize
+        req.body.title = sanitizeText(title);
+        req.body.content_html = sanitizeHtml(content_html);
+
         const chapter = await Chapter.create(req.body);
         res.status(201).json(chapter);
     } catch (error) {
@@ -186,8 +219,12 @@ router.post('/chapters', async (req, res) => {
 
 // Chapters specific endpoints (Get one, Update, Delete)
 router.get('/chapters/:id', getOne(Chapter));
-router.put('/chapters/:id', update(Chapter));
-router.delete('/chapters/:id', remove(Chapter));
+router.put('/chapters/:id', isAuthenticated, isChapterOwner, (req, res, next) => {
+    if (req.body.title) req.body.title = sanitizeText(req.body.title);
+    if (req.body.content_html) req.body.content_html = sanitizeHtml(req.body.content_html);
+    next();
+}, update(Chapter));
+router.delete('/chapters/:id', isAuthenticated, isChapterOwner, remove(Chapter));
 
 // Audiobook streaming endpoint (placeholder)
 router.get('/audiobooks/:id/stream', (req, res) => {
@@ -227,9 +264,9 @@ router.put('/authors/me', isAuthenticated, async (req, res) => {
 // Authors endpoints
 router.get('/authors', getAll(Author));
 router.get('/authors/:id', getOne(Author));
-router.post('/authors', create(Author));
-router.put('/authors/:id', update(Author));
-router.delete('/authors/:id', remove(Author));
+router.post('/authors', isAuthenticated, create(Author));
+router.put('/authors/:id', isAuthenticated, isAuthorOwner, update(Author));
+router.delete('/authors/:id', isAuthenticated, isAuthorOwner, remove(Author));
 
 // Combined Profile Data endpoint
 // Combined Profile Data endpoint
