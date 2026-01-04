@@ -19,16 +19,22 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
     const [goodreadsLink, setGoodreadsLink] = useState(initialData.goodreadsLink || '');
     const [amazonLink, setAmazonLink] = useState(initialData.amazonLink || '');
     const [spotifyLink, setSpotifyLink] = useState(initialData.spotifyLink || '');
+    const [chapterSpotifyLink, setChapterSpotifyLink] = useState(initialData.chapterSpotifyLink || '');
+    const [collectionTitle, setCollectionTitle] = useState(initialData.collectionTitle || '');
 
-    // Handle images array safely
+    // Handle images array safely for general work covers
     const [images, setImages] = useState(initialData.images || [
         { url: '', file: null, caption: '' },
         { url: '', file: null, caption: '' },
         { url: '', file: null, caption: '' }
     ]);
 
+    // Handle folio image specifically for entries like Visual Arts
+    const [folioImage, setFolioImage] = useState(initialData.folioImage || { url: '', file: null, caption: '' });
+
     const [selectedVideo, setSelectedVideo] = useState(initialData.selectedVideo || '');
     const [chapterTitle, setChapterTitle] = useState(initialData.chapterTitle || '');
+    const [chapterDescription, setChapterDescription] = useState(initialData.chapterDescription || '');
     const [sequence, setSequence] = useState(initialData.sequence || 1);
 
     // Update state when initialData changes (for editing mode switching)
@@ -45,13 +51,17 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
             setGoodreadsLink(initialData.goodreadsLink || '');
             setAmazonLink(initialData.amazonLink || '');
             setSpotifyLink(initialData.spotifyLink || '');
+            setChapterSpotifyLink(initialData.chapterSpotifyLink || '');
+            setCollectionTitle(initialData.collectionTitle || '');
             setImages(initialData.images || [
                 { url: '', file: null, caption: '' },
                 { url: '', file: null, caption: '' },
                 { url: '', file: null, caption: '' }
             ]);
+            setFolioImage(initialData.folioImage || { url: '', file: null, caption: '' });
             setSelectedVideo(initialData.selectedVideo || '');
             setChapterTitle(initialData.chapterTitle || '');
+            setChapterDescription(initialData.chapterDescription || '');
             setSequence(initialData.sequence || 1);
         }
     }, [initialData]);
@@ -62,7 +72,7 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
         setShowAlignDropdown(false);
     };
 
-    const handleImageUpload = (index, e) => {
+    const handleGridImageUpload = (index, e) => {
         const file = e.target.files[0];
         if (file) {
             const newUrl = URL.createObjectURL(file);
@@ -72,10 +82,22 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
         }
     };
 
-    const removeImage = (index) => {
+    const removeGridImage = (index) => {
         const newImages = [...images];
         newImages[index] = { url: '', file: null, caption: '' };
         setImages(newImages);
+    };
+
+    const handleFolioImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const newUrl = URL.createObjectURL(file);
+            setFolioImage({ url: newUrl, file, caption: '' });
+        }
+    };
+
+    const removeFolioImage = () => {
+        setFolioImage({ url: '', file: null, caption: '' });
     };
 
     // Toolbar Handlers
@@ -93,8 +115,8 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
     const getFormData = () => ({
         title, content, alignment, workType, genre,
         syndicationCadence, fullDownload, description,
-        goodreadsLink, amazonLink, spotifyLink,
-        images, selectedVideo, chapterTitle, sequence
+        goodreadsLink, amazonLink, spotifyLink, chapterSpotifyLink, collectionTitle,
+        images, folioImage, selectedVideo, chapterTitle, chapterDescription, sequence
     });
 
     return (
@@ -113,29 +135,48 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                         <option value="Short Story">Short Story</option>
                         <option value="Poem">Poem</option>
                         <option value="Audiobook">Audiobook</option>
+                        <option value="Visual Arts">Visual Arts</option>
                     </select>
                 </div>
 
                 {/* Title Input */}
                 <div className="mt-[10px]">
-                    <label className="block text-sm font-medium text-zinc-400 mb-2">Title <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">
+                        {workType === 'Visual Arts' ? 'Show Title' : 'Title'} <span className="text-red-500">*</span>
+                    </label>
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter title..."
+                        placeholder={workType === 'Visual Arts' ? "Enter show title..." : "Enter title..."}
                         className="w-full bg-[#1a1a1a] text-white border border-white/20 rounded-lg px-4 py-3 focus:ring-1 focus:ring-violet-500/50 focus:outline-none placeholder-zinc-500"
                     />
                 </div>
 
+                {/* Collection Title Field - Now in Work Metadata section for Poems and Short Stories */}
+                {(workType === 'Poem' || workType === 'Short Story') && (
+                    <div style={{ marginTop: '10px' }} className="w-full">
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">Collection Title</label>
+                        <input
+                            type="text"
+                            value={collectionTitle}
+                            onChange={(e) => setCollectionTitle(e.target.value)}
+                            placeholder="Enter collection title..."
+                            className="w-full bg-[#1a1a1a] text-white border border-white/20 rounded-lg px-4 py-3 focus:ring-1 focus:ring-violet-500/50 focus:outline-none placeholder-zinc-500"
+                        />
+                    </div>
+                )}
+
                 {/* Genre Input */}
                 <div className="mt-[10px]">
-                    <label className="block text-sm font-medium text-zinc-400 mb-2">Genre <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">
+                        {workType === 'Visual Arts' ? 'Medium' : 'Genre'} <span className="text-red-500">*</span>
+                    </label>
                     <input
                         type="text"
                         value={genre}
                         onChange={(e) => setGenre(e.target.value)}
-                        placeholder="Enter genre..."
+                        placeholder={workType === 'Visual Arts' ? "Enter medium (e.g. Oil on Canvas)..." : "Enter genre..."}
                         className="w-full bg-[#1a1a1a] text-white border border-white/20 rounded-lg px-4 py-3 focus:ring-1 focus:ring-violet-500/50 focus:outline-none placeholder-zinc-500"
                     />
                 </div>
@@ -270,51 +311,54 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                     </div>
                 </div>
 
-                {/* Images */}
-                <div style={{ marginTop: '10px' }}>
-                    <label className="block text-sm font-medium text-zinc-400 mb-2">Images <span className="text-red-500">*</span></label>
-                    <p className="text-sm text-zinc-500" style={{ marginBottom: '10px' }}>Upload the image for your book, short fiction, collection or exhibit. Image 1 is the hero image that will appear on the Work page.</p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {images.map((img, index) => (
-                            <div key={index} className="flex flex-col">
-                                <label style={{ marginBottom: '5px', display: 'block' }} className="text-xs font-bold text-zinc-500">
-                                    Image {index + 1} {index === 0 && <span className="text-red-500">*</span>}
-                                </label>
+                {/* Images - Hidden for Visual Arts since it uses per-folio upload */}
+                {workType !== 'Visual Arts' && (
+                    <div style={{ marginTop: '10px' }}>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">Images <span className="text-red-500">*</span></label>
+                        <p className="text-sm text-zinc-500" style={{ marginBottom: '10px' }}>Upload the image for your book, short fiction, collection or exhibit. Image 1 is the hero image that will appear on the Work page.</p>
 
-                                <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-zinc-800 border border-white/20 shadow-2xl group transition-all hover:border-violet-500/50">
-                                    {img.url ? (
-                                        <>
-                                            <img src={img.url} className="w-full h-full object-cover" alt={`Work Image ${index + 1}`} />
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeImage(index)}
-                                                    className="p-2 bg-red-500/80 rounded-full text-white hover:bg-red-600 transition-colors"
-                                                >
-                                                    <X size={20} />
-                                                </button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors group/label">
-                                            <div className="p-4 rounded-full bg-white/5 group-hover/label:bg-white/10 mb-2 transition-colors">
-                                                <Cloud size={24} className="text-zinc-500 group-hover/label:text-violet-500" />
-                                            </div>
-                                            <span className="text-xs text-zinc-500 font-medium">Upload</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={(e) => handleImageUpload(index, e)}
-                                            />
-                                        </label>
-                                    )}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {images.map((img, index) => (
+                                <div key={index} className="flex flex-col">
+                                    <label style={{ marginBottom: '5px', display: 'block' }} className="text-xs font-bold text-zinc-500">
+                                        Image {index + 1} {index === 0 && <span className="text-red-500">*</span>}
+                                    </label>
+
+                                    <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-zinc-800 border border-white/20 shadow-2xl group transition-all hover:border-violet-500/50">
+                                        {img.url ? (
+                                            <>
+                                                <img src={img.url} className="w-full h-full object-cover" alt={`Work Image ${index + 1}`} />
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeGridImage(index)}
+                                                        className="p-2 bg-red-500/80 rounded-full text-white hover:bg-red-600 transition-colors"
+                                                    >
+                                                        <X size={20} />
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors group/label">
+                                                <div className="p-4 rounded-full bg-white/5 group-hover/label:bg-white/10 mb-2 transition-colors">
+                                                    <Cloud size={24} className="text-zinc-500 group-hover/label:text-violet-500" />
+                                                </div>
+                                                <span className="text-xs text-zinc-500 font-medium">Upload</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => handleGridImageUpload(index, e)}
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Videos */}
                 <div style={{ marginTop: '20px' }}>
@@ -350,7 +394,8 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
             </div>
 
             {/* Editor Toolbar */}
-            {!isEditing && (
+            {!isEditing && workType !== 'Audiobook' && workType !== 'Visual Arts' && <div className="h-[40px]"></div>}
+            {!isEditing && workType !== 'Audiobook' && workType !== 'Visual Arts' && (
                 <div className="sticky top-0 z-40 bg-[#333333]/95 backdrop-blur-sm border-b border-zinc-800 px-6 py-3 flex items-center justify-center gap-2 overflow-x-auto rounded-lg mb-4">
                     <div className="flex items-center gap-1.5 border-r border-zinc-800 pr-2 mr-2">
                         <button onMouseDown={(e) => e.preventDefault()} onClick={() => handleFormat('undo')} className="p-2 hover:bg-zinc-800 rounded text-white"><Undo2 size={27} /></button>
@@ -402,11 +447,17 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                 </div>
             )}
 
+
             {!isEditing && (
                 <>
                     {/* Chapter Title & Sequence - only if creating new chapters, or needed */}
                     <div style={{ marginTop: '10px' }} className="w-full">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Chapter Title</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                            {workType === 'Poem' ? 'Poem Title' :
+                                workType === 'Short Story' ? 'Story Title' :
+                                    workType === 'Visual Arts' ? 'Image Title' :
+                                        'Chapter Title'}
+                        </label>
                         <input
                             type="text"
                             value={chapterTitle}
@@ -415,8 +466,26 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                         />
                     </div>
 
+                    {workType === 'Visual Arts' && (
+                        <div style={{ marginTop: '10px' }} className="w-full">
+                            <label className="block text-sm font-medium text-zinc-400 mb-2">Image Description</label>
+                            <textarea
+                                value={chapterDescription}
+                                onChange={(e) => setChapterDescription(e.target.value)}
+                                placeholder="Describe this image..."
+                                className="w-full bg-[#1a1a1a] text-white border border-white/20 rounded-lg px-4 py-3 focus:ring-1 focus:ring-violet-500/50 focus:outline-none placeholder-zinc-500 resize-none"
+                                rows={4}
+                            />
+                        </div>
+                    )}
+
                     <div style={{ marginTop: '10px' }} className="w-full">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Chapter Sequence</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                            {workType === 'Poem' ? 'Poem Sequence' :
+                                workType === 'Short Story' ? 'Story Sequence' :
+                                    workType === 'Visual Arts' ? 'Folio Sequence' :
+                                        'Chapter Sequence'}
+                        </label>
                         <select
                             value={sequence}
                             onChange={(e) => setSequence(e.target.value)}
@@ -429,33 +498,89 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                         </select>
                     </div>
 
-                    {/* Writing Area */}
-                    <div style={{ marginTop: '10px' }} className="w-full">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Text Input</label>
-                        <div className="flex justify-between items-center mb-0">
-                            <p className="text-sm text-zinc-500">Select the Font in Word or your word processing software before pasting your text. We will present the Work in your chosen font in 12 points.</p>
+                    {/* Image Upload below sequence - ONLY for Visual Arts */}
+                    {workType === 'Visual Arts' && (
+                        <div style={{ marginTop: '20px' }}>
+                            <label className="block text-sm font-medium text-zinc-400 mb-2">Image Upload <span className="text-red-500">*</span></label>
+                            <p className="text-sm text-zinc-500" style={{ marginBottom: '10px' }}>Upload the image for this folio. The first image will display as the Hero image for your folio.</p>
+
+                            <div className="max-w-[280px]">
+                                <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-zinc-800 border border-white/20 shadow-2xl group transition-all hover:border-violet-500/50">
+                                    {folioImage.url ? (
+                                        <>
+                                            <img src={folioImage.url} className="w-full h-full object-cover" alt="Folio Image" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={removeFolioImage}
+                                                    className="p-2 bg-red-500/80 rounded-full text-white hover:bg-red-600 transition-colors"
+                                                >
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors group/label">
+                                            <div className="p-4 rounded-full bg-white/5 group-hover/label:bg-white/10 mb-2 transition-colors">
+                                                <Cloud size={24} className="text-zinc-500 group-hover/label:text-violet-500" />
+                                            </div>
+                                            <span className="text-xs text-zinc-500 font-medium">Upload Image</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleFolioImageUpload}
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
                         </div>
+                    )}
 
-                        <div className="h-[10px]"></div>
+                    {/* Chapter Spotify Link - Only for Audiobooks */}
+                    {workType === 'Audiobook' && (
+                        <div style={{ marginTop: '10px' }} className="w-full">
+                            <label className="block text-sm font-medium text-zinc-400 mb-2">Chapter Spotify Link <span className="text-red-500">*</span></label>
+                            <input
+                                type="url"
+                                value={chapterSpotifyLink}
+                                onChange={(e) => setChapterSpotifyLink(e.target.value)}
+                                placeholder="https://open.spotify.com/episode/..."
+                                className="w-full bg-[#1a1a1a] text-white border border-white/20 rounded-lg px-4 py-3 focus:ring-1 focus:ring-violet-500/50 focus:outline-none placeholder-zinc-500"
+                            />
+                        </div>
+                    )}
 
-                        <div
-                            contentEditable
-                            onInput={(e) => setContent(e.currentTarget.innerHTML)}
-                            className="new-work-editor w-full text-white placeholder-zinc-500 border border-white/20 rounded-lg p-4 focus:ring-1 focus:ring-violet-500/50 resize-none leading-relaxed min-h-[600px] bg-transparent outline-none overflow-y-auto"
-                            style={{
-                                fontSize: '19px', // Default size if not specified in paste
-                                caretColor: 'white'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: content }}
-                            data-placeholder="Paste your text here"
-                            onBlur={(e) => {
-                                if (e.currentTarget.innerHTML === '<br>') {
-                                    e.currentTarget.innerHTML = '';
-                                    setContent('');
-                                }
-                            }}
-                        />
-                    </div>
+                    {/* Writing Area - Hidden for Audiobooks and Visual Arts */}
+                    {workType !== 'Audiobook' && workType !== 'Visual Arts' && (
+                        <div style={{ marginTop: '10px' }} className="w-full">
+                            <label className="block text-sm font-medium text-zinc-400 mb-2">Text Input</label>
+                            <div className="flex justify-between items-center mb-0">
+                                <p className="text-sm text-zinc-500">Select the Font in Word or your word processing software before pasting your text. We will present the Work in your chosen font in 12 points.</p>
+                            </div>
+
+                            <div className="h-[10px]"></div>
+
+                            <div
+                                contentEditable
+                                onInput={(e) => setContent(e.currentTarget.innerHTML)}
+                                className="new-work-editor w-full text-white placeholder-zinc-500 border border-white/20 rounded-lg p-4 focus:ring-1 focus:ring-violet-500/50 resize-none leading-relaxed min-h-[600px] bg-transparent outline-none overflow-y-auto"
+                                style={{
+                                    fontSize: '19px', // Default size if not specified in paste
+                                    caretColor: 'white'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: content }}
+                                data-placeholder="Paste your text here"
+                                onBlur={(e) => {
+                                    if (e.currentTarget.innerHTML === '<br>') {
+                                        e.currentTarget.innerHTML = '';
+                                        setContent('');
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
                 </>
             )}
 

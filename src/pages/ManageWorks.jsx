@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, BookOpen, PenTool, Headphones, Library, Users, DollarSign, Star, Eye, CheckCircle2, FileText, Archive, Lock, Menu, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, BookOpen, PenTool, Headphones, Library, Users, DollarSign, Star, Eye, CheckCircle2, FileText, Archive, Lock, Menu, X, Palette } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -60,7 +60,8 @@ const ManageWorks = () => {
                     ...(apiWorks.novels || []).map(w => ({ ...w, type: 'Novel', icon: Library })),
                     ...(apiWorks.stories || []).map(w => ({ ...w, type: 'Short Story', icon: BookOpen })), // Normalized type name
                     ...(apiWorks.poems || []).map(w => ({ ...w, type: 'Poem', icon: PenTool })),
-                    ...(apiWorks.audiobooks || []).map(w => ({ ...w, type: 'Audiobook', icon: Headphones }))
+                    ...(apiWorks.audiobooks || []).map(w => ({ ...w, type: 'Audiobook', icon: Headphones })),
+                    ...(apiWorks.visualArts || []).map(w => ({ ...w, type: 'Visual Arts', icon: Palette }))
                 ].map(w => ({
                     ...w,
                     status: 'Published',
@@ -111,14 +112,19 @@ const ManageWorks = () => {
 
         const endpoint = formData.workType === 'Poem' ? '/api/poems' :
             formData.workType === 'Short Story' ? '/api/short-fiction' :
-                '/api/novels';
+                formData.workType === 'Audiobook' ? '/api/audiobooks' :
+                    formData.workType === 'Visual Arts' ? '/api/visual-arts' :
+                        '/api/novels';
 
         const payload = {
             title: formData.title,
             description: formData.description,
             genre: formData.genre,
             status: selectedWork.status || 'Draft', // Preserve status
-            // Add other fields as necessary
+            collection_title: formData.collectionTitle,
+            ...(formData.workType === 'Audiobook' && {
+                cover_image_url: formData.images && formData.images[0] ? formData.images[0].url : null,
+            })
         };
 
         try {

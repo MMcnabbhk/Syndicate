@@ -75,7 +75,7 @@ class User {
         return rows.length ? new User(rows[0]) : null;
     }
 
-    static async create({ email, password = null, name = null, handle = null, role = 'reader', oauthProvider = null, oauthId = null, avatarUrl = null }) {
+    static async create({ email, password = null, name = null, handle = null, role = 'reader', oauthProvider = null, oauthId = null, avatarUrl = null, signupCreatorId = null }) {
         let passwordHash = null;
         if (password) {
             passwordHash = await this.hashPassword(password);
@@ -83,10 +83,10 @@ class User {
 
         const id = crypto.randomUUID();
         const sql = `
-            INSERT INTO users (id, email, password_hash, name, handle, role, oauth_provider, oauth_id, cover_image_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, email, password_hash, name, handle, role, oauth_provider, oauth_id, cover_image_url, signup_creator_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        await db.query(sql, [id, email, passwordHash, name, handle, role, oauthProvider, oauthId, avatarUrl]);
+        await db.query(sql, [id, email, passwordHash, name, handle, role, oauthProvider, oauthId, avatarUrl, signupCreatorId]);
 
         return this.findById(id);
     }

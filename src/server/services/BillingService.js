@@ -7,6 +7,7 @@ import PoetryCollection from '../models/PoetryCollection.js';
 import Novel from '../models/Novel.js';
 import { addMonths } from 'date-fns';
 import Stripe from 'stripe';
+import notify from '../utils/notify.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock');
 
@@ -86,6 +87,36 @@ export default class BillingService {
             status: 'active',
             current_period_end: currentPeriodEnd
         });
+
+        // Notify Author
+        try {
+            // Try to find the work (and author) - we check Novel first as it's the primary use case
+            // If it's another type, we should check those too, or query a unified view if we had one.
+            // For now, check Novel, if not found check ShortStory, Poem, etc. or just query generic author_id from known tables?
+            // Simplest: Check all models or use a raw query if we don't know the type.
+            // However, we don't have db imported here directly maybe?
+            // Actually, we can use the Models.
+            let work = await Novel.findById(workId) ||
+                await ShortStory.findById(workId) ||
+                await Poem.findById(workId) ||
+                await Audiobook.findById(workId) ||
+                await PoetryCollection.findById(workId);
+
+            if (work && work.author_id) {
+                await notify.send(
+                    work.author_id,
+                    'release', // Using release (Star) or maybe 'money' (Dollar) for subscription? User asked for Fan notification for following work.
+                    // 'fan' type is for signup. For work follow, maybe we stick to 'release' (Star) or 'money' (Dollar)?
+                    // User said: "add a new Fan notification when a new reader signs up and follows a work or creator"
+                    // Maybe use 'fan' for both?
+                    'fan',
+                    'New Subscriber',
+                    `A user has subscribed to your work: ${work.title}`
+                );
+            }
+        } catch (err) {
+            console.error('[BillingService] Notification error:', err);
+        }
 
         return { success: true };
     }

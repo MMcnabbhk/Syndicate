@@ -60,6 +60,7 @@ const AudioBooks = () => {
             {/* Trending In Category */}
             <section className="container">
                 <div className="h-10 w-full"></div>
+                <div style={{ height: '20px' }} />
                 <div className="flex items-center gap-2">
                     <h2 className="text-2xl font-bold text-white">Trending in {activeCategory}</h2>
                     <Sparkles className="text-amber-400" size={20} />

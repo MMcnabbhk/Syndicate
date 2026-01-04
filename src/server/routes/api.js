@@ -8,7 +8,8 @@ import Novel from '../models/Novel.js';
 import Chapter from '../models/Chapter.js';
 import PoetryCollection from '../models/PoetryCollection.js';
 import PoetryCollectionItem from '../models/PoetryCollectionItem.js';
-import AudiobookChapter from '../models/AudiobookChapter.js';
+import VisualArt from '../models/VisualArt.js';
+import VisualArtFolio from '../models/VisualArtFolio.js';
 import Author from '../models/Author.js';
 import User from '../models/User.js';
 
@@ -83,6 +84,22 @@ const validateNovel = (req, res, next) => {
     }
     req.body.title = sanitizeText(title);
     if (req.body.description) req.body.description = sanitizeText(req.body.description);
+    next();
+};
+
+const validateVisualArt = (req, res, next) => {
+    const { author_id, title } = req.body;
+    if (!author_id || !title) {
+        return res.status(400).json({ error: 'Missing required fields: author_id, title' });
+    }
+    next();
+};
+
+const validateVisualArtFolio = (req, res, next) => {
+    const { visual_art_id, chapter_number, image_url } = req.body;
+    if (!visual_art_id || !chapter_number || !image_url) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
     next();
 };
 // Generic CRUD handlers (will be bound per content type)
@@ -164,6 +181,27 @@ router.get('/audiobook-chapters/:id', getOne(AudiobookChapter));
 router.post('/audiobook-chapters', validateAudiobookChapter, create(AudiobookChapter));
 router.put('/audiobook-chapters/:id', update(AudiobookChapter));
 router.delete('/audiobook-chapters/:id', remove(AudiobookChapter));
+
+// Visual Arts endpoints
+router.get('/visual-arts', getAll(VisualArt));
+router.get('/visual-arts/:id', getOne(VisualArt));
+router.post('/visual-arts', validateVisualArt, create(VisualArt));
+router.put('/visual-arts/:id', update(VisualArt));
+router.delete('/visual-arts/:id', remove(VisualArt));
+
+router.get('/visual-art-folios', getAll(VisualArtFolio));
+router.get('/visual-art-folios/:id', getOne(VisualArtFolio));
+router.post('/visual-art-folios', validateVisualArtFolio, create(VisualArtFolio));
+router.get('/visual-arts/:id/folios', async (req, res) => {
+    try {
+        const folios = await VisualArtFolio.findAllByVisualArtId(req.params.id);
+        res.json(folios);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+router.put('/visual-art-folios/:id', update(VisualArtFolio));
+router.delete('/visual-art-folios/:id', remove(VisualArtFolio));
 
 // Novels endpoints
 router.get('/novels', getAll(Novel));
@@ -276,13 +314,14 @@ router.get('/authors/:id/profile', async (req, res) => {
         const author = await Author.findById(req.params.id);
         if (!author) return res.status(404).json({ error: 'Author not found' });
 
-        const [poems, stories, audiobooks, collections, novels] = await Promise.all([
+        const [poems, stories, audiobooks, collections, novels, visualArts] = await Promise.all([
             // Return empty arrays for tables that don't exist yet to prevent crashes
             Promise.resolve([]),
             Promise.resolve([]),
             Promise.resolve([]),
             Promise.resolve([]),
-            Novel.findAll() // Novels table exists and works
+            Novel.findAll(), // Novels table exists and works
+            VisualArt.findAll()
             /* 
             Poem.findAll().catch(() => []), 
             ShortStory.findAll().catch(() => []),
@@ -297,6 +336,7 @@ router.get('/authors/:id/profile', async (req, res) => {
             poems: poems.filter(p => p.author_id == req.params.id).sort(sortByOrder),
             stories: stories.filter(s => s.author_id == req.params.id).sort(sortByOrder),
             audiobooks: audiobooks.filter(a => a.author_id == req.params.id).sort(sortByOrder),
+            visualArts: visualArts.filter(v => v.author_id == req.params.id).sort(sortByOrder),
             collections: collections.filter(c => c.author_id == req.params.id).sort(sortByOrder),
             novels: novels.filter(n => n.author_id == req.params.id).sort(sortByOrder)
         };

@@ -4,7 +4,7 @@ import db from '../db.js';
 
 
 export default class Poem {
-    constructor({ id, author_id, title, content_html, form, tags, status, published_at, cover_image_url, price_monthly, subscribers_count, lifetime_earnings, genre }) {
+    constructor({ id, author_id, title, content_html, form, tags, status, published_at, cover_image_url, price_monthly, subscribers_count, lifetime_earnings, genre, collection_title }) {
         this.id = id;
         this.author_id = author_id;
         this.title = title;
@@ -18,6 +18,7 @@ export default class Poem {
         this.subscribers_count = subscribers_count || 0;
         this.lifetime_earnings = lifetime_earnings || 0;
         this.genre = genre || null;
+        this.collection_title = collection_title || null;
     }
 
     static async findAll() {
@@ -36,17 +37,17 @@ export default class Poem {
     }
 
     static async create(data) {
-        const { author_id, title, content_html, form, tags, status, cover_image_url, price_monthly } = data;
-        const sql = `INSERT INTO poems (author_id, title, content_html, form, tags, status, cover_image_url, price_monthly, published_at) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
-        const result = await db.query(sql, [author_id, title, content_html, form, tags, status || 'draft', cover_image_url || null, price_monthly || 0]);
+        const { author_id, title, content_html, form, tags, status, cover_image_url, price_monthly, collection_title } = data;
+        const sql = `INSERT INTO poems (author_id, title, content_html, form, tags, status, cover_image_url, price_monthly, collection_title, published_at) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
+        const result = await db.query(sql, [author_id, title, content_html, form, tags, status || 'draft', cover_image_url || null, price_monthly || 0, collection_title || null]);
         return result;
     }
 
     static async update(id, data) {
-        const { title, content_html, form, tags, status, cover_image_url, price_monthly } = data;
-        const sql = `UPDATE poems SET title = ?, content_html = ?, form = ?, tags = ?, status = ?, cover_image_url = ?, price_monthly = ? WHERE id = ?`;
-        await db.query(sql, [title, content_html, form, tags, status, cover_image_url, price_monthly, id]);
+        const { title, content_html, form, tags, status, cover_image_url, price_monthly, collection_title } = data;
+        const sql = `UPDATE poems SET title = ?, content_html = ?, form = ?, tags = ?, status = ?, cover_image_url = ?, price_monthly = ?, collection_title = ? WHERE id = ?`;
+        await db.query(sql, [title, content_html, form, tags, status, cover_image_url, price_monthly, collection_title, id]);
         return this.findById(id);
     }
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import crypto from 'crypto';
+import notify from '../utils/notify.js';
 
 const router = Router();
 
@@ -56,14 +57,26 @@ router.post('/login', (req, res, next) => {
 
 // Registration
 router.post('/register', async (req, res) => {
-    const { email, password, display_name } = req.body;
+    const { email, password, display_name, signupCreatorId } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
     try {
         const existing = await User.findByEmail(email);
         if (existing) return res.status(400).json({ error: 'Email already in use' });
 
-        const user = await User.create({ email, password, name: display_name });
+        const user = await User.create({ email, password, name: display_name, signupCreatorId });
+
+        // Notify creator if applicable
+        if (signupCreatorId) {
+            // In a real app we might verify creator existence or fetch their name, but for now just send
+            await notify.send(
+                signupCreatorId,
+                'fan',
+                'New Fan',
+                `A new reader has signed up via your profile!`
+            );
+        }
+
         req.login(user, (err) => {
             if (err) return res.status(500).json({ error: 'Failed to log in after registration' });
             res.status(201).json({ success: true, user: user.toPublic() });

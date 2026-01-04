@@ -63,7 +63,7 @@ const FAQ = () => {
             items: [
                 {
                     question: "How do readers pay for content?",
-                    answer: "We use a Contribution Model rather than a paywall. Readers can express their appreciation for your art by making voluntary contributions in set amounts: $1.00, $3.00, or $10.00. These levels were set to reflect what authors net from the sale of a digital download or audiobook on Amazon."
+                    answer: "We use a Contribution Model rather than a paywall. Readers can express their appreciation for your art by making voluntary contributions in set amounts: $5.00, $10.00, or $20.00. These levels were set to reflect what authors net from the sale of a digital download or audiobook on Amazon."
                 },
                 {
                     question: "What are the fees?",

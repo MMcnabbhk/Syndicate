@@ -32,7 +32,9 @@ const NewWork = () => {
 
         const endpoint = formData.workType === 'Poem' ? '/api/poems' :
             formData.workType === 'Short Story' ? '/api/short-fiction' :
-                '/api/novels'; // Default/Novel
+                formData.workType === 'Audiobook' ? '/api/audiobooks' :
+                    formData.workType === 'Visual Arts' ? '/api/visual-arts' :
+                        '/api/novels'; // Default/Novel
 
         const payload = {
             author_id: userState.authorId,
@@ -40,7 +42,12 @@ const NewWork = () => {
             description: formData.description,
             status: 'Draft',
             genre: formData.genre,
-            // Add other fields as supported by specific models
+            collection_title: formData.collectionTitle,
+            // Audiobook specific fields (used as cover image for all types in this simplified backend)
+            cover_image_url: formData.workType === 'Visual Arts'
+                ? (formData.folioImage?.url || null)
+                : (formData.images && formData.images[0] ? formData.images[0].url : null),
+            narrator: userState.name || 'Author', // Placeholder
         };
 
         try {
@@ -78,16 +85,43 @@ const NewWork = () => {
         if (!workId) return false;
 
         try {
-            const res = await fetch('http://localhost:4000/api/chapters', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const isAudiobook = formData.workType === 'Audiobook';
+            const isVisualArt = formData.workType === 'Visual Arts';
+            const endpoint = isAudiobook ? '/api/audiobook-chapters' :
+                isVisualArt ? '/api/visual-art-folios' :
+                    '/api/chapters';
+
+            let payload;
+            if (isAudiobook) {
+                payload = {
+                    audiobook_id: workId,
+                    title: formData.chapterTitle || `Chapter ${formData.sequence}`,
+                    chapter_number: formData.sequence,
+                    audio_url: formData.chapterSpotifyLink,
+                    duration_seconds: 0
+                };
+            } else if (isVisualArt) {
+                payload = {
+                    visual_art_id: workId,
+                    chapter_number: formData.sequence,
+                    title: formData.chapterTitle || `Folio ${formData.sequence}`,
+                    image_url: formData.folioImage?.url || '',
+                    description: formData.chapterDescription || ''
+                };
+            } else {
+                payload = {
                     novel_id: workId,
                     title: formData.chapterTitle || `Chapter ${formData.sequence}`,
                     chapter_number: formData.sequence,
                     content_html: formData.content,
                     status: 'Published' // Or Draft
-                })
+                };
+            }
+
+            const res = await fetch(`http://localhost:4000${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
             return res.ok;
         } catch (err) {

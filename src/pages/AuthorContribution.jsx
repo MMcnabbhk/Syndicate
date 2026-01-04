@@ -2,6 +2,68 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Heart, CreditCard, Lock, MapPin, Loader2 } from 'lucide-react';
 import { useNovel, useAuthor } from '../hooks/useData';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+// Initialize Stripe (User needs to add their key to .env)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
+
+// Payment Form Sub-component
+const PaymentForm = ({ amount, targetName, onSuccess }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [message, setMessage] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!stripe || !elements) return;
+
+        setIsProcessing(true);
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                // Make sure to change this to your payment completion page
+                return_url: `${window.location.origin}/payment-success`,
+            },
+            redirect: 'if_required'
+        });
+
+        if (error) {
+            setMessage(error.message);
+            setIsProcessing(false);
+        } else {
+            // Payment succeeded!
+            onSuccess();
+            setIsProcessing(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl p-4">
+                <PaymentElement
+                    options={{
+                        theme: 'night',
+                        variables: { colorPrimary: '#8b5cf6', colorBackground: '#09090b', colorText: '#ffffff' }
+                    }}
+                />
+            </div>
+            {message && <div className="text-red-400 text-sm bg-red-900/10 p-3 rounded-lg border border-red-900/20">{message}</div>}
+
+            <button
+                type="submit"
+                disabled={!stripe || isProcessing}
+                style={{ backgroundColor: '#f97316' }}
+                className="w-full py-3 hover:bg-orange-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {isProcessing ? <Loader2 className="animate-spin" /> : <><Lock size={18} /> Pay ${amount}</>}
+            </button>
+        </form>
+    );
+};
 
 const US_STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -23,41 +85,80 @@ const AuthorContribution = () => {
     const loading = isAuthorMode ? authorLoading : bookLoading;
     const error = isAuthorMode ? authorError : bookError;
 
-    // Normalize data
-    const entity = isAuthorMode ? {
-        id: authorData?.id,
-        title: `Contribution to ${authorData?.name}`,
-        author: authorData?.name
-    } : book;
+    // Normalize data (Handling null authorData)
+    const entity = isAuthorMode ? (authorData ? {
+        id: authorData.id,
+        title: `Your Contribution to ${authorData.name}`,
+        author: authorData.name
+    } : null) : book;
 
     const [amount, setAmount] = useState(5);
     const [customAmount, setCustomAmount] = useState('');
     const [note, setNote] = useState('');
+    const [clientSecret, setClientSecret] = useState('');
 
     const currentAmount = customAmount ? parseFloat(customAmount) : amount;
     const displayAmount = isNaN(currentAmount) ? '0.00' : currentAmount.toFixed(2);
 
-    const handlePay = () => {
-        console.log('Processing payment:', {
-            targetId: entity.id,
-            targetTitle: entity.title,
-            author: entity.author,
-            amount: currentAmount,
-            note: note
-        });
-        alert(`Thank you for your contribution of $${displayAmount}! Your note has been sent to ${entity.author}.`);
+    const [paymentError, setPaymentError] = useState(null);
+
+    // Fetch PaymentIntent when amount changes (Debounce could be added)
+    React.useEffect(() => {
+        if (!currentAmount || currentAmount <= 0) return;
+
+        const createIntent = async () => {
+            setPaymentError(null);
+            try {
+                const res = await fetch('http://localhost:4000/api/payments/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: currentAmount, currency: 'usd' }),
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    if (res.status === 503 && err.code === 'STRIPE_NOT_CONFIGURED') {
+                        setPaymentError('Stripe API keys are missing. Please configure .env');
+                        return;
+                    }
+                    throw new Error(err.error || 'Failed to initialize payment');
+                }
+
+                const data = await res.json();
+                if (data.clientSecret) {
+                    setClientSecret(data.clientSecret);
+                }
+            } catch (err) {
+                console.error("Failed to create payment intent", err);
+                setPaymentError(err.message);
+            }
+        };
+        // Simple debounce
+        const timeout = setTimeout(createIntent, 500);
+        return () => clearTimeout(timeout);
+    }, [currentAmount]);
+
+    const handleSuccess = async () => {
+        // Create notification on success
+        try {
+            await fetch('http://localhost:4000/api/notifications/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'money',
+                    title: 'New Contribution Sent',
+                    message: `You contributed $${displayAmount} to ${entity.author}.`,
+                    userId: 'demo-user-id'
+                })
+            });
+            alert(`Thank you for your contribution of $${displayAmount}! Your note has been sent to ${entity.author}.`);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handlePayPal = () => {
-        console.log('Processing PayPal payment:', {
-            targetId: entity.id,
-            targetTitle: entity.title,
-            author: entity.author,
-            amount: currentAmount,
-            note: note,
-            provider: 'PayPal'
-        });
-        alert(`Redirecting to PayPal for contribution of $${displayAmount}...`);
+        alert("PayPal flow logic would go here.");
     };
 
     if (loading) {
@@ -68,7 +169,12 @@ const AuthorContribution = () => {
         );
     }
 
-    if (!entity) return <div className="container py-20 text-center text-white">Target not found</div>;
+    if (!entity) return <div className="container py-20 text-center text-white">Author Not Found</div>;
+
+    const appearance = {
+        theme: 'night',
+        variables: { colorPrimary: '#8b5cf6', colorBackground: '#09090b', colorText: '#ffffff' }
+    };
 
     return (
         <div className="container py-10 max-w-6xl">
@@ -112,10 +218,10 @@ const AuthorContribution = () => {
                             <Heart className="text-violet-400 shrink-0 mt-1" size={24} />
                             <div>
                                 <p className="text-violet-200 text-sm font-medium">100% goes to the author</p>
-                                <p className="text-violet-300/70 text-xs mt-1 mb-3">Your support directly helps {entity.author} create more content.</p>
+                                <p className="text-violet-300/70 text-xs mt-1 mb-3">Your support directly helps {entity.author} create more art.</p>
                                 <div className="h-6"></div>
                                 <p className="text-white text-xs leading-relaxed">
-                                    <span className="text-orange-500">Syndicate</span> is a platform built by creators to support creators. Authors contribute $2.00 a month to the costs of operating the platform. The balance of contributions less Stripe payment processing fees (3.4%) goes to the author.
+                                    <span className="text-orange-500">Syndicate</span> is a platform built to support creators. Creators contribute a small fixed amount each month to the costs of operating the platform. The balance of contributions less Stripe payment processing fees (3.4%) goes to the author.
                                 </p>
                             </div>
                         </div>
@@ -148,7 +254,7 @@ const AuthorContribution = () => {
                         <div style={{ height: '15px' }} />
                         <h3 className="text-xl font-bold text-white mb-6">Contribution Amount</h3>
                         <div className="flex flex-wrap items-center gap-8 mb-10">
-                            {[2, 5, 10].map(opt => (
+                            {[5, 10, 20].map(opt => (
                                 <div
                                     key={opt}
                                     onClick={() => { setAmount(opt); setCustomAmount(''); }}
@@ -171,24 +277,38 @@ const AuthorContribution = () => {
                                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                                     Payment Method <CreditCard size={20} className="text-zinc-500" />
                                 </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-white mb-2">Card Number</label>
-                                        <div className="relative">
-                                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-                                            <input type="text" className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors" placeholder="0000 0000 0000 0000" />
+
+                                {paymentError ? (
+                                    <div className="text-red-400 bg-red-900/10 border border-red-900/20 p-6 rounded-xl flex items-center gap-3">
+                                        <div className="bg-red-900/30 p-2 rounded-full"><Lock size={20} /></div>
+                                        <div>
+                                            <p className="font-bold">Payment System Unavailable</p>
+                                            <p className="text-sm opacity-80">{paymentError}</p>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '16px' }}>
-                                        <div style={{ width: '140px' }}>
-                                            <label className="block text-sm font-medium text-white mb-2">Expiration</label>
-                                            <input type="text" className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors" placeholder="MM / YY" />
-                                        </div>
-                                        <div style={{ width: '140px' }}>
-                                            <label className="block text-sm font-medium text-white mb-2">CVC</label>
-                                            <input type="text" className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors" placeholder="123" />
-                                        </div>
+                                ) : clientSecret ? (
+                                    <div className="mb-6">
+                                        <Elements options={{ clientSecret, appearance }} stripe={stripePromise}>
+                                            <PaymentForm
+                                                amount={displayAmount}
+                                                targetName={entity.author}
+                                                onSuccess={handleSuccess}
+                                            />
+                                        </Elements>
                                     </div>
+                                ) : (
+                                    <div className="text-zinc-500 bg-zinc-900/30 border border-dashed border-zinc-800 p-8 rounded-xl text-center">
+                                        Loading secure payment gateway...
+                                    </div>
+                                )}
+
+                                <div className="text-center">
+                                    <button
+                                        onClick={handlePayPal}
+                                        className="px-8 bg-[#0070BA]/10 hover:bg-[#0070BA]/20 text-[#0070BA] font-bold py-3 rounded-xl inline-flex items-center justify-center gap-2 transition-all border border-[#0070BA]/30 w-full"
+                                    >
+                                        Pay with PayPal
+                                    </button>
                                 </div>
                             </div>
 
@@ -227,19 +347,9 @@ const AuthorContribution = () => {
                             {/* Actions */}
                             <div className="border-t border-zinc-800 flex flex-col items-center">
                                 <div style={{ height: '20px' }} />
-                                <button
-                                    onClick={handlePay}
-                                    style={{ backgroundColor: '#f97316', padding: '12px 32px' }}
-                                    className="hover:bg-orange-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 mb-4 hover:opacity-90"
-                                >
-                                    <Lock size={18} /> Pay ${displayAmount}
-                                </button>
-                                <button
-                                    onClick={handlePayPal}
-                                    className="px-8 bg-[#0070BA]/10 hover:bg-[#0070BA]/20 text-[#0070BA] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-[#0070BA]/30"
-                                >
-                                    Pay with PayPal
-                                </button>
+
+                                {/* The Stripe payment button is now inside PaymentForm */}
+                                {/* The PayPal button is moved here and styled */}
                             </div>
                         </div>
                     </div>

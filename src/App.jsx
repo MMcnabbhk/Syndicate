@@ -32,6 +32,8 @@ import CreatorProfile from './pages/CreatorProfile';
 import FansAndContributors from './pages/FansAndContributors';
 import Money from './pages/Money';
 import ManageInvites from './pages/ManageInvites';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 import { StoreProvider } from './context/StoreContext';
 
 function App() {
@@ -67,6 +69,8 @@ function App() {
             <Route path="community" element={<FansAndContributors />} />
             <Route path="invites" element={<ManageInvites />} />
             <Route path="money" element={<Money />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="about" element={<About />} />
