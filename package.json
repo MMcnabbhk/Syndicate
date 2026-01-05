@@ -28,6 +28,8 @@
     "express-session": "^1.18.2",
     "framer-motion": "^12.23.26",
     "jsdom": "^27.4.0",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",

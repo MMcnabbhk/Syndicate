@@ -180,7 +180,7 @@ const Settings = () => {
     };
 
     return (
-        <div className="w-full max-w-3xl px-8 py-10 text-white">
+        <div className="px-8 py-10 text-white" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
             <PasswordModal
                 isOpen={modalConfig.isOpen}
                 onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

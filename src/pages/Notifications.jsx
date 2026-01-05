@@ -27,11 +27,13 @@ const Notifications = () => {
                             time: n.created_at ? new Date(n.created_at).toLocaleDateString() : 'Just now'
                         })));
                     } else {
-                        // Fallback to mock data if DB empty for demo purposes
                         setNotifications([
-                            { id: 101, type: 'release', title: 'New Poem Release', message: 'Eldritch Echoes by Lyra Nightshade is now available for you to read.', time: '2m ago', unread: true, date: 'Today' },
-                            { id: 108, type: 'money', title: 'New Contribution to You', message: 'You received a $5.00 contribution from @reader123! Note: "Love your work!"', time: '5m ago', unread: true, date: 'Today' },
-                            { id: 102, type: 'system', title: 'Account Verified', message: 'Your creator account is now fully active. You can start publishing work.', time: '1h ago', unread: false, date: 'Today' },
+                            { id: 101, type: 'release', title: 'New Release: The Silent Void', message: 'Elena Fisher published a new chapter in "The Silent Void".', time: '2h ago', unread: true, date: 'Today' },
+                            { id: 102, type: 'fan', title: 'Contribution Confirmed', message: 'Thank you for supporting Marcus Thorne! Your $5.00 contribution has been received.', time: '5h ago', unread: true, date: 'Today' },
+                            { id: 103, type: 'system', title: 'Platform Update', message: 'Admin: We have updated our privacy policy causing a system restart. No action needed.', time: '1d ago', unread: false, date: 'Yesterday' },
+                            { id: 104, type: 'system', title: 'Password Changed', message: 'Your account password was successfully updated.', time: '2d ago', unread: false, date: 'Earlier' },
+                            { id: 105, type: 'system', title: 'Username Changed', message: 'Your username has been successfully updated to @new_handle.', time: '3d ago', unread: false, date: 'Earlier' },
+                            { id: 106, type: 'system', title: 'Data Export Ready', message: 'Your requested data export is ready for download.', time: '3d ago', unread: false, date: 'Earlier' },
                         ]);
                     }
                 }

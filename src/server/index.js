@@ -10,6 +10,7 @@ import communityRouter from './routes/community.js';
 import contactsRouter from './routes/contacts.js';
 import invitesRouter from './routes/invites.js';
 import notificationsRouter from './routes/notifications.js';
+import subscriptionsRouter from './routes/subscriptions.js';
 import paymentsRouter from './routes/payments.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -88,6 +89,7 @@ app.use('/api/contacts', contactsRouter);
 app.use('/api/invites', invitesRouter);
 app.use('/api/community', communityRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api/payments', paymentsRouter);
 
 // Serve static files from the public directory

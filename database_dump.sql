@@ -14,14 +14,72 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
-SET @@SESSION.SQL_LOG_BIN= 0;
 
 --
--- GTID state at the beginning of the backup 
+-- Table structure for table `audiobook_chapters`
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '4d5f7b3e-e62a-11f0-8c16-754c1eb2259e:1-135';
+DROP TABLE IF EXISTS `audiobook_chapters`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `audiobook_chapters` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `audiobook_id` int NOT NULL,
+  `chapter_number` int NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `audio_url` varchar(2048) NOT NULL,
+  `duration_seconds` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `audiobook_id` (`audiobook_id`),
+  CONSTRAINT `audiobook_chapters_ibfk_1` FOREIGN KEY (`audiobook_id`) REFERENCES `audiobooks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `audiobook_chapters`
+--
+
+LOCK TABLES `audiobook_chapters` WRITE;
+/*!40000 ALTER TABLE `audiobook_chapters` DISABLE KEYS */;
+/*!40000 ALTER TABLE `audiobook_chapters` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `audiobooks`
+--
+
+DROP TABLE IF EXISTS `audiobooks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `audiobooks` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `author_id` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `cover_image_url` varchar(2048) DEFAULT NULL,
+  `narrator` varchar(255) DEFAULT NULL,
+  `duration_seconds` int DEFAULT '0',
+  `status` varchar(50) DEFAULT 'draft',
+  `price_monthly` decimal(10,2) DEFAULT '0.00',
+  `subscribers_count` int DEFAULT '0',
+  `lifetime_earnings` decimal(10,2) DEFAULT '0.00',
+  `genre` varchar(100) DEFAULT NULL,
+  `published_at` datetime DEFAULT NULL,
+  `display_order` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_author` (`author_id`),
+  CONSTRAINT `audiobooks_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `audiobooks`
+--
+
+LOCK TABLES `audiobooks` WRITE;
+/*!40000 ALTER TABLE `audiobooks` DISABLE KEYS */;
+INSERT INTO `audiobooks` VALUES (1,'a2','The Midnight Echo','https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=600','Sarah Jenkins',30600,'published',4.99,150,0.00,'Thriller & Suspense','2026-01-04 10:56:49',0);
+/*!40000 ALTER TABLE `audiobooks` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `authors`
@@ -133,6 +191,127 @@ INSERT INTO `contributions` VALUES (1,'612336','b1',5.00,'USD','subscription','2
 UNLOCK TABLES;
 
 --
+-- Table structure for table `creator_contacts`
+--
+
+DROP TABLE IF EXISTS `creator_contacts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `creator_contacts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `owner_id` varchar(36) NOT NULL,
+  `encrypted_email` text NOT NULL,
+  `encrypted_name` text,
+  `source` varchar(50) DEFAULT NULL,
+  `email_hash` varchar(64) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_owner_contact_hash` (`owner_id`,`email_hash`),
+  KEY `owner_id` (`owner_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `creator_contacts`
+--
+
+LOCK TABLES `creator_contacts` WRITE;
+/*!40000 ALTER TABLE `creator_contacts` DISABLE KEYS */;
+INSERT INTO `creator_contacts` VALUES (1,'7d9c0f88-76e0-426c-9a77-d850460c787e','fb4e2342d25a2e10b4b20d2a45431bbe:c6eb4c1eb206aa00899cfb124e877eac:dcc30d95ed3e1570d394f7d4d78509d43d04','9eb037435eccd29dfd922a2c53806440:6ee366f3249e24482bbc5a4b53be840b:cee561e034b4144b774317b059a5','CSV','85b5c9aa53b0757610b1d4e6a5127f00c6dadbdd48269a1b0dd79bd6bf039a36','2026-01-03 01:02:29');
+/*!40000 ALTER TABLE `creator_contacts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `creator_invite_templates`
+--
+
+DROP TABLE IF EXISTS `creator_invite_templates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `creator_invite_templates` (
+  `creator_id` varchar(36) NOT NULL,
+  `invite_text` text,
+  `reminder1_text` text,
+  `reminder2_text` text,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`creator_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `creator_invite_templates`
+--
+
+LOCK TABLES `creator_invite_templates` WRITE;
+/*!40000 ALTER TABLE `creator_invite_templates` DISABLE KEYS */;
+/*!40000 ALTER TABLE `creator_invite_templates` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `creator_invites`
+--
+
+DROP TABLE IF EXISTS `creator_invites`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `creator_invites` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator_id` varchar(36) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `status` enum('pending','sent','reminder1','reminder2','accepted','failed') DEFAULT 'pending',
+  `invite_sent_at` timestamp NULL DEFAULT NULL,
+  `reminder1_sent_at` timestamp NULL DEFAULT NULL,
+  `reminder2_sent_at` timestamp NULL DEFAULT NULL,
+  `accepted_at` timestamp NULL DEFAULT NULL,
+  `new_user_id` varchar(36) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_creator_invite` (`creator_id`,`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `creator_invites`
+--
+
+LOCK TABLES `creator_invites` WRITE;
+/*!40000 ALTER TABLE `creator_invites` DISABLE KEYS */;
+/*!40000 ALTER TABLE `creator_invites` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notifications`
+--
+
+LOCK TABLES `notifications` WRITE;
+/*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
+INSERT INTO `notifications` VALUES (1,'demo-user-id','fan','New Fan Verification','This is a test notification for the new Fan type.',0,'2026-01-04 00:32:17');
+/*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `novels`
 --
 
@@ -166,6 +345,167 @@ LOCK TABLES `novels` WRITE;
 /*!40000 ALTER TABLE `novels` DISABLE KEYS */;
 INSERT INTO `novels` VALUES ('b1','d3993ab0-2a72-4f1d-b676-cd15051fae50','Island Of The Thieves','In a world where history is currency, a young orphan discovers a map to the lost Island of the Thieves. But he is not the only one looking for it.','/assets/island_thieves_new.jpg','published',14.99,'2025-05-15 00:00:00',0,0.00,'Adventure','Every 3 Days'),('b2','d3993ab0-2a72-4f1d-b676-cd15051fae50','Water Washes Earth','Two lovers separated by a war that spans continents find their way back to each other through the letters they leave in the sea.','/assets/cover_water_washes.jpg','published',12.99,'2024-11-01 00:00:00',0,0.00,'Literary Fiction','Daily'),('b3','d3993ab0-2a72-4f1d-b676-cd15051fae50','Season of Light','A coming-of-age story set in the endless days of a nordic summer, where shadows are short but secrets are long.','/assets/cover_season_of_light.jpg','published',13.99,'2025-08-10 00:00:00',0,0.00,'Literary Fiction','Daily'),('b4','a2','Echoes of the Deep','A deep-sea salvage crew finds a wreck that shouldn\'t exist.','/assets/cover_deep.png','published',9.99,'2024-10-01 00:00:00',0,0.00,'Literary Fiction','Daily'),('b5','d3993ab0-2a72-4f1d-b676-cd15051fae50','Tyger','Deep in the jungle...','/assets/cover_tyger.jpg','published',10.00,'2025-01-01 00:00:00',0,0.00,'Fantasy','Daily');
 /*!40000 ALTER TABLE `novels` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `poems`
+--
+
+DROP TABLE IF EXISTS `poems`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `poems` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `author_id` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content_html` mediumtext,
+  `form` varchar(100) DEFAULT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'draft',
+  `published_at` datetime DEFAULT NULL,
+  `cover_image_url` varchar(2048) DEFAULT NULL,
+  `price_monthly` decimal(10,2) DEFAULT '0.00',
+  `subscribers_count` int DEFAULT '0',
+  `lifetime_earnings` decimal(10,2) DEFAULT '0.00',
+  `genre` varchar(100) DEFAULT NULL,
+  `display_order` int DEFAULT '0',
+  `collection_title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_author` (`author_id`),
+  CONSTRAINT `poems_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `poems`
+--
+
+LOCK TABLES `poems` WRITE;
+/*!40000 ALTER TABLE `poems` DISABLE KEYS */;
+/*!40000 ALTER TABLE `poems` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `poetry_collection_items`
+--
+
+DROP TABLE IF EXISTS `poetry_collection_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `poetry_collection_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `collection_id` int NOT NULL,
+  `poem_id` int NOT NULL,
+  `display_order` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `collection_id` (`collection_id`),
+  KEY `poem_id` (`poem_id`),
+  CONSTRAINT `poetry_collection_items_ibfk_1` FOREIGN KEY (`collection_id`) REFERENCES `poetry_collections` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `poetry_collection_items_ibfk_2` FOREIGN KEY (`poem_id`) REFERENCES `poems` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `poetry_collection_items`
+--
+
+LOCK TABLES `poetry_collection_items` WRITE;
+/*!40000 ALTER TABLE `poetry_collection_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `poetry_collection_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `poetry_collections`
+--
+
+DROP TABLE IF EXISTS `poetry_collections`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `poetry_collections` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `author_id` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `cover_image_url` varchar(2048) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'draft',
+  `published_at` datetime DEFAULT NULL,
+  `price_monthly` decimal(10,2) DEFAULT '0.00',
+  `display_order` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_author` (`author_id`),
+  CONSTRAINT `poetry_collections_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `poetry_collections`
+--
+
+LOCK TABLES `poetry_collections` WRITE;
+/*!40000 ALTER TABLE `poetry_collections` DISABLE KEYS */;
+/*!40000 ALTER TABLE `poetry_collections` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sessions` (
+  `session_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `expires` int unsigned NOT NULL,
+  `data` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sessions`
+--
+
+LOCK TABLES `sessions` WRITE;
+/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
+INSERT INTO `sessions` VALUES ('-MuLJeaA0ItBBMRY3aeBlOe21YVv-3jl',1768193943,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-12T04:59:02.713Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"}}'),('0W4dRHrMJJ8Xbzqor5C7YUg1MptLeLnI',1768194378,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-12T04:59:56.377Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('31VcnaAHlcIbFIEzthnJ68LVAByy_fR4',1768097638,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-11T00:42:45.679Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('7oP8eBPGb7zP-HK8qpOwSW3jDuAoVRKX',1768092309,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-11T00:33:52.572Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('87Fr74cF03mO-7vfrf4qh9MsB0wSDlgo',1768007760,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:15:59.894Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('AYL3axYlQlEHbwqd5y0ebQTwugxhT2LT',1768009118,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:38:38.100Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('CWYMCxHitTI8WE2IUA0No0AG2K5TPq5f',1768006947,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:02:27.006Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"}}'),('Dcn-_vGoIaib5yH_wKeYEgJ8v6ERXO_O',1768009371,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:02:47.748Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('FRxf7GTmQJIZhCN6UknGsnJPucPmyfeI',1768011383,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T02:07:08.443Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('KQvAcadQUPe3LXQLT8wZ2-MxExgVCihf',1768042053,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T07:21:17.592Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('OXvH63es-wragBBVAmZIk6hELd1XxUl8',1768193964,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-12T01:11:04.566Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"ccb27fe8-2b86-4c43-962b-0f0e5d15306f\"}}'),('YiWzXW8Is1CsszXwT3YN07umc5nFjW7x',1768180082,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-12T01:08:01.562Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"}}'),('Zam9xNuA1amO_AfJe8mc8e4AVG5bJ612',1768006911,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:01:50.711Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"7d9c0f88-76e0-426c-9a77-d850460c787e\"}}'),('k_EL4TGG9mzNvZ9mlA300pbps4QRgUD-',1768009172,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:39:31.812Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('sK3lUxTqCYYyRdoY04Onzpdvs-9Ce1ke',1768187044,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-12T01:21:28.970Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"ccb27fe8-2b86-4c43-962b-0f0e5d15306f\"}}'),('uTAOBzeqRUapI2_fjbhv0qKLMo4JcbTv',1768034495,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:36:30.776Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"user_giypuxcey\"}}'),('uYDFDxmfcLXgUzp3WaxwUj5vKmf866Xp',1768007035,'{\"cookie\":{\"originalMaxAge\":604800000,\"expires\":\"2026-01-10T01:02:23.906Z\",\"secure\":false,\"httpOnly\":true,\"path\":\"/\",\"sameSite\":\"lax\"},\"passport\":{\"user\":\"7d9c0f88-76e0-426c-9a77-d850460c787e\"}}');
+/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `short_stories`
+--
+
+DROP TABLE IF EXISTS `short_stories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `short_stories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `author_id` varchar(255) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content_html` mediumtext,
+  `genre` varchar(100) DEFAULT NULL,
+  `summary` text,
+  `status` varchar(50) DEFAULT 'draft',
+  `published_at` datetime DEFAULT NULL,
+  `cover_image_url` varchar(2048) DEFAULT NULL,
+  `price_monthly` decimal(10,2) DEFAULT '0.00',
+  `subscribers_count` int DEFAULT '0',
+  `lifetime_earnings` decimal(10,2) DEFAULT '0.00',
+  `display_order` int DEFAULT '0',
+  `collection_title` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_author` (`author_id`),
+  CONSTRAINT `short_stories_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `authors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `short_stories`
+--
+
+LOCK TABLES `short_stories` WRITE;
+/*!40000 ALTER TABLE `short_stories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `short_stories` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -208,6 +548,9 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `magic_token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `magic_expires` timestamp NULL DEFAULT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `handle` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -218,6 +561,8 @@ CREATE TABLE `users` (
   `oauth_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `signup_source` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `signup_creator_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `handle` (`handle`),
@@ -232,10 +577,9 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('1','michael@syndicate.com','Michael James',NULL,NULL,NULL,'creator',0.00,NULL,NULL,'2026-01-01 07:27:01','2026-01-02 01:20:19'),('222604','bob@example.com','Bob Smith',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866527_0.9318854958706747','2026-01-02 09:57:46','2026-01-02 09:57:46'),('612336','alice@example.com','Alice Walker',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866502_0.961360073751543','2026-01-02 09:57:46','2026-01-02 09:57:46'),('704057','charlie@example.com','Charlie Day',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866537_0.4627253017943521','2026-01-02 09:57:46','2026-01-02 09:57:46'),('user_giypuxcey','michael@creator.com','Michael James',NULL,NULL,NULL,'creator',0.00,NULL,NULL,'2026-01-02 01:56:36','2026-01-02 01:56:36');
+INSERT INTO `users` VALUES ('1','michael@syndicate.com',NULL,NULL,NULL,'Michael James',NULL,NULL,NULL,'admin',0.00,NULL,NULL,'2026-01-01 07:27:01','2026-01-05 04:27:13',NULL,NULL),('222604','bob@example.com',NULL,NULL,NULL,'Bob Smith',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866527_0.9318854958706747','2026-01-02 09:57:46','2026-01-02 09:57:46',NULL,NULL),('612336','alice@example.com',NULL,NULL,NULL,'Alice Walker',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866502_0.961360073751543','2026-01-02 09:57:46','2026-01-02 09:57:46',NULL,NULL),('704057','charlie@example.com',NULL,NULL,NULL,'Charlie Day',NULL,NULL,NULL,'reader',0.00,'google','mock_google_1767347866537_0.4627253017943521','2026-01-02 09:57:46','2026-01-02 09:57:46',NULL,NULL),('7d9c0f88-76e0-426c-9a77-d850460c787e','testing@example.com','$2b$10$O0MZENkmzIBtSePB5ZSwOeGIcXjEI4.1D4ji0boPnWqDt0TCRzSne','cdfc94c6ca1b843f8b5540ff769f2d302c4265952ba1af79f35a9ff997aaf3b2','2026-01-03 02:01:59','Tester',NULL,NULL,NULL,'reader',0.00,NULL,NULL,'2026-01-03 01:01:50','2026-01-03 01:01:58',NULL,NULL),('93a839ac-5518-4e66-b850-85e31a98bb3a','michael.mcnabb@gmail.com',NULL,NULL,NULL,'michael.mcnabb',NULL,NULL,NULL,'reader',0.00,NULL,NULL,'2026-01-03 01:02:15','2026-01-03 01:02:15',NULL,NULL),('ccb27fe8-2b86-4c43-962b-0f0e5d15306f','reader@syndicate.com','$2b$10$b7hE7eZUDEnDWLVI9SwjBe6.1KIK1QnwGI60qjGaZ5MD4zfC/YDiC',NULL,NULL,'Dev Reader',NULL,NULL,NULL,'reader',0.00,NULL,NULL,'2026-01-05 01:10:30','2026-01-05 01:10:30',NULL,NULL),('user_giypuxcey','michael@creator.com',NULL,NULL,NULL,'Michael James',NULL,NULL,NULL,'admin',0.00,NULL,NULL,'2026-01-02 01:56:36','2026-01-05 04:59:09',NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -246,4 +590,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-02 22:58:12
+-- Dump completed on 2026-01-05 13:11:50

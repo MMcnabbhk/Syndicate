@@ -14,10 +14,17 @@ class User {
         this.bio = data.bio;
         this.cover_image_url = data.cover_image_url;
         this.role = data.role || 'reader';
+        this.status = data.status || 'active';
         this.wallet_balance = data.wallet_balance;
         this.oauth_provider = data.oauth_provider;
         this.oauth_id = data.oauth_id;
         this.created_at = data.created_at;
+
+        // Statistics
+        this.works_count = data.works_count || 0;
+        this.contributors_count = data.contributors_count || 0;
+        this.fans_count = data.fans_count || 0;
+        this.author_balance = data.author_balance || 0;
 
         // Aliases for compatibility
         this.display_name = data.name;
@@ -41,7 +48,12 @@ class User {
             handle: this.handle,
             avatar_url: this.cover_image_url,
             role: this.role,
-            created_at: this.created_at
+            status: this.status,
+            created_at: this.created_at,
+            works_count: this.works_count,
+            contributors_count: this.contributors_count,
+            fans_count: this.fans_count,
+            author_balance: this.author_balance
         };
     }
 
@@ -100,6 +112,57 @@ class User {
         const sql = 'SELECT * FROM users WHERE magic_token = ? AND magic_expires > NOW()';
         const { rows } = await db.query(sql, [token]);
         return rows.length ? new User(rows[0]) : null;
+    }
+
+    static async findAll() {
+        const sql = `
+            SELECT 
+                u.*,
+                (SELECT COUNT(*) FROM authors WHERE user_id = u.id) as author_exists,
+                COALESCE((SELECT balance FROM authors WHERE user_id = u.id), 0) as author_balance,
+                (
+                    SELECT COUNT(*) FROM novels WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                ) + (
+                    SELECT COUNT(*) FROM poems WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                ) + (
+                    SELECT COUNT(*) FROM short_stories WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                ) + (
+                    SELECT COUNT(*) FROM audiobooks WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                ) as works_count,
+                (
+                    SELECT COUNT(DISTINCT user_id) 
+                    FROM subscriptions 
+                    WHERE work_id IN (
+                        SELECT id FROM novels WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                        UNION SELECT id FROM poems WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                        UNION SELECT id FROM short_stories WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                        UNION SELECT id FROM audiobooks WHERE author_id IN (SELECT id FROM authors WHERE user_id = u.id)
+                    ) AND status = 'active'
+                ) as contributors_count,
+                (
+                    SELECT COUNT(*) 
+                    FROM creator_contacts 
+                    WHERE owner_id = (SELECT id FROM authors WHERE user_id = u.id)
+                ) as fans_count
+            FROM users u
+            ORDER BY u.created_at DESC
+        `;
+        const { rows } = await db.query(sql);
+        return rows.map(row => new User(row));
+    }
+
+    static async update(userId, data) {
+        const fields = Object.keys(data);
+        const values = Object.values(data);
+        const setters = fields.map(f => `${f} = ?`).join(', ');
+        const sql = `UPDATE users SET ${setters} WHERE id = ?`;
+        await db.query(sql, [...values, userId]);
+        return this.findById(userId);
+    }
+
+    static async delete(userId) {
+        const sql = 'DELETE FROM users WHERE id = ?';
+        await db.query(sql, [userId]);
     }
 }
 

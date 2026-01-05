@@ -597,7 +597,10 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                         className="w-full md:w-auto min-w-[240px] px-12 py-4 text-white hover:opacity-90 font-bold text-lg rounded-lg transition-colors shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2 uppercase tracking-wide"
                     >
                         <PlusCircle size={20} />
-                        Save & Add Next Chapter
+                        {workType === 'Poem' ? 'Add Poem' :
+                            workType === 'Short Story' ? 'Add Story' :
+                                workType === 'Visual Arts' ? 'Add Folio' :
+                                    'Add Chapter'}
                     </button>
                 )}
                 <button

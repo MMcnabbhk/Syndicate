@@ -1,11 +1,60 @@
-import React, { useState } from 'react';
-import { DollarSign, CreditCard, Landmark, FileText, ArrowUpRight, ArrowDownLeft, Calendar, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { DollarSign, CreditCard, Landmark, FileText, ArrowUpRight, ArrowDownLeft, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
 const Money = () => {
+    const { userState } = useStore();
     const [payoutMethod, setPayoutMethod] = useState('paypal');
+    const [balance, setBalance] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [requesting, setRequesting] = useState(false);
+    const [message, setMessage] = useState(null);
 
-    // Mock Transaction Data
-    // Mock Transaction Data
+    const THRESHOLD = 40;
+
+    useEffect(() => {
+        fetchBalance();
+    }, []);
+
+    const fetchBalance = async () => {
+        try {
+            const res = await fetch('/api/authors/me');
+            if (res.ok) {
+                const data = await res.json();
+                setBalance(data.balance || 0);
+            }
+        } catch (err) {
+            console.error("Failed to fetch balance:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRequestPayout = async () => {
+        if (balance < THRESHOLD) return;
+
+        setRequesting(true);
+        setMessage(null);
+
+        try {
+            const res = await fetch(`/api/authors/${userState.authorId}/payout`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                setMessage({ type: 'success', text: 'Payout requested successfully! Your balance has been reset.' });
+                setBalance(0); // Reset local balance
+            } else {
+                setMessage({ type: 'error', text: data.error || 'Failed to request payout' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Server error. Please try again later.' });
+        } finally {
+            setRequesting(false);
+        }
+    };
+
     // Mock Transaction Data
     const transactions = [
         { id: 1, type: 'contribution', desc: 'Contribution from @reader_one', amount: 50.00, date: 'Feb 12, 2026', status: 'Completed', balance: 1350.50 },
@@ -26,22 +75,49 @@ const Money = () => {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Financials</span>
                         </h1>
                         <p className="mt-4 text-xl text-zinc-400 mx-auto" style={{ color: '#a1a1aa' }}>
-                            One Less dollar for Zukerberg. One more dollar for you.
+                            One Less dollar for Zuckerberg. One more dollar for you.
                         </p>
                         <div style={{ height: '40px' }}></div>
                     </div>
                 </div>
 
-                {/* Balance & Actions */}
+                {message && (
+                    <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+                        }`}>
+                        {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                        <span className="font-medium">{message.text}</span>
+                    </div>
+                )}
+
                 {/* Balance & Actions */}
                 <div className="mb-10">
                     <div className="bg-gradient-to-br from-emerald-900/30 to-teal-900/10 border border-emerald-500/20 rounded-2xl p-8 relative overflow-hidden">
-                        <div className="relative z-10">
-                            <div className="text-emerald-400/80 font-medium mb-1 flex items-center gap-2">
-                                <DollarSign size={18} /> Available Balance
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                            <div>
+                                <div className="text-emerald-400/80 font-medium mb-1 flex items-center gap-2">
+                                    <DollarSign size={18} /> Available Balance
+                                </div>
+                                <div className="text-5xl font-bold text-white mb-6">
+                                    {loading ? '...' : `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                </div>
+                                <p className="text-sm text-emerald-400">You may withdraw funds when your balance exceeds ${THRESHOLD.toFixed(2)}</p>
                             </div>
-                            <div className="text-5xl font-bold text-white mb-6">$1,250.50</div>
-                            <p className="text-sm text-emerald-400">You may withdraw funds when your balance exceeds $40.00</p>
+
+                            <button
+                                onClick={handleRequestPayout}
+                                disabled={balance < THRESHOLD || requesting || !userState.authorId}
+                                className={`px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-2 transition-all shadow-xl ${balance >= THRESHOLD && !requesting && userState.authorId
+                                        ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-emerald-500/20 active:scale-95'
+                                        : 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5 shadow-none'
+                                    }`}
+                            >
+                                {requesting ? (
+                                    <div className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                ) : (
+                                    <ArrowUpRight size={22} strokeWidth={2.5} />
+                                )}
+                                <span>{requesting ? 'Processing...' : 'Request Payout'}</span>
+                            </button>
                         </div>
                         {/* Blob decoration */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />

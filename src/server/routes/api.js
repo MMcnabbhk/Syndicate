@@ -4,6 +4,7 @@ import { Router } from 'express';
 import Poem from '../models/Poem.js';
 import ShortStory from '../models/ShortStory.js';
 import Audiobook from '../models/Audiobook.js';
+import AudiobookChapter from '../models/AudiobookChapter.js';
 import Novel from '../models/Novel.js';
 import Chapter from '../models/Chapter.js';
 import PoetryCollection from '../models/PoetryCollection.js';
@@ -19,6 +20,13 @@ const isAuthenticated = (req, res, next) => {
         return next();
     }
     res.status(401).json({ error: 'Unauthorized' });
+};
+
+const isAdmin = (req, res, next) => {
+    if (req.isAuthenticated() && req.user.role === 'admin') {
+        return next();
+    }
+    res.status(403).json({ error: 'Forbidden: Admin access only' });
 };
 
 import { isAuthorOwner, isNovelOwner, isChapterOwner } from '../middleware/authorize.js';
@@ -407,6 +415,38 @@ router.post('/comments', (req, res) => {
     const { content_type, content_id, text } = req.body;
     // TODO: create comment linked to specified content
     res.json({ message: 'Create comment not implemented', content_type, content_id, text });
+});
+
+// Admin: User Management
+router.get('/admin/users', isAdmin, async (req, res) => {
+    try {
+        const users = await User.findAll();
+        res.json(users.map(u => u.toPublic()));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.put('/admin/users/:id/status', isAdmin, async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['active', 'suspended'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+        const updatedUser = await User.update(req.params.id, { status });
+        res.json(updatedUser.toPublic());
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.delete('/admin/users/:id', isAdmin, async (req, res) => {
+    try {
+        await User.delete(req.params.id);
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 export default router;

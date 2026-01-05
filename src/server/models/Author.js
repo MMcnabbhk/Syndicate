@@ -215,7 +215,7 @@ export default class Author {
         return { totalRevenue, breakdown };
     }
 
-    static async requestPayout(authorId, threshold = 50) {
+    static async requestPayout(authorId, threshold = 40) {
         const author = await this.findById(authorId);
         if (!author) throw new Error('Author not found');
 

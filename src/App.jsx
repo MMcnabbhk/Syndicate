@@ -33,7 +33,15 @@ import FansAndContributors from './pages/FansAndContributors';
 import Money from './pages/Money';
 import ManageInvites from './pages/ManageInvites';
 import Notifications from './pages/Notifications';
+
 import Settings from './pages/Settings';
+import SubscribedWorks from './pages/SubscribedWorks';
+import FollowingCreators from './pages/FollowingCreators';
+import ReaderContributions from './pages/ReaderContributions';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminMessaging from './pages/AdminMessaging';
+import AdminFinancials from './pages/AdminFinancials';
 import { StoreProvider } from './context/StoreContext';
 
 function App() {
@@ -58,7 +66,7 @@ function App() {
             <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
             <Route path="book/:id" element={<BookProfile />} />
             <Route path="book/:id/contribute" element={<AuthorContribution />} />
-            <Route path="book/:id/contribute" element={<AuthorContribution />} />
+
             <Route path="author/:id" element={<AuthorProfile />} />
             <Route path="author/:id/contribute" element={<AuthorContribution />} />
             <Route path="read/:bookId/:chapterId" element={<Reader />} />
@@ -70,7 +78,18 @@ function App() {
             <Route path="invites" element={<ManageInvites />} />
             <Route path="money" element={<Money />} />
             <Route path="notifications" element={<Notifications />} />
+
             <Route path="settings" element={<Settings />} />
+            <Route path="subscribed-works" element={<SubscribedWorks />} />
+            <Route path="following-creators" element={<FollowingCreators />} />
+            <Route path="reader-contributions" element={<ReaderContributions />} />
+
+            {/* Admin Routes */}
+            <Route path="admin/dashboard" element={<AdminDashboard />} />
+            <Route path="admin/users" element={<AdminUsers />} />
+            <Route path="admin/messages" element={<AdminMessaging />} />
+            <Route path="admin/financials" element={<AdminFinancials />} />
+
             <Route path="library" element={<Library />} />
             <Route path="faq" element={<FAQ />} />
             <Route path="about" element={<About />} />
