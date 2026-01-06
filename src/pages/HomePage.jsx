@@ -1,122 +1,124 @@
 
-import React from 'react';
-import { useNovels } from '../hooks/useData';
-import BookCard from '../components/BookCard';
-import { Sparkles, TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Marquee from '../components/Marquee';
+
+const getWorkLink = (type, id) => {
+    switch (type) {
+        case 'Novel': return `/book/${id}`;
+        case 'Audiobook': return `/audiobooks`; // Fallback until AudiobookProfile exists
+        case 'Short Story': return `/stories`; // Fallback
+        case 'Poem': return `/poetry`; // Fallback
+        case 'Visual Art': return `/visual-arts`; // Fallback
+        default: return `/`;
+    }
+};
+
+// Function to deterministically generate grid classes based on index to ensure "Mondrian" feel
+// but consistent render. Randomness can be seeded or just index-based pattern.
+const getGridClass = (index) => {
+    // Pattern: Big Square, Tall, Wide, Small, Small, Wide, Big...
+    // 0: Big (2x2)
+    // 1: Tall (1x2)
+    // 2: Small (1x1)
+    // 3: Wide (2x1)
+    // 4: Small (1x1)
+    // etc.
+    const pattern = [
+        'col-span-2 row-span-2', // Big
+        'col-span-1 row-span-2', // Tall
+        'col-span-1 row-span-1', // Small
+        'col-span-2 row-span-1', // Wide
+        'col-span-1 row-span-1', // Small
+        'col-span-1 row-span-2', // Tall
+        'col-span-2 row-span-2', // Big
+        'col-span-1 row-span-1', // Small
+        'col-span-1 row-span-1', // Small
+    ];
+    return pattern[index % pattern.length];
+};
 
 const HomePage = () => {
-    const { data: novels, loading, error } = useNovels();
+    const [works, setWorks] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    if (novels && novels.length > 0) {
-        console.log('HomePage First Book:', JSON.stringify(novels[0], null, 2));
-    }
+    useEffect(() => {
+        const fetchFeed = async () => {
+            try {
+                const res = await fetch('/api/feed');
+                const data = await res.json();
+                setWorks(data);
+            } catch (err) {
+                console.error("Failed to fetch feed", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
-            </div>
-        );
-    }
+        fetchFeed();
+    }, []);
 
-    if (error) {
-        return (
-            <div className="container py-20 text-center">
-                <p className="text-red-500">Error loading books: {error}</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="text-white text-center mt-20">Loading Feed...</div>;
 
-    // Data is already adapted by the hook
-    const featuredBook = novels?.[0];
-    const trendingBooks = Array(4).fill(novels || []).flat().slice(0, 8);
-    const newArrivalsBooks = Array(4).fill(novels || []).flat().slice(0, 8);
-
-    if (!featuredBook) {
-        return (
-            <div className="container py-20 text-center">
-                <p className="text-zinc-400">No books available</p>
-            </div>
-        );
-    }
+    // Prepare Marquee Items with Special Messages
+    const marqueeItems = [];
+    works.slice(0, 15).forEach((work, index) => {
+        marqueeItems.push(work);
+        // Insert message every 3 works
+        if ((index + 1) % 3 === 0) {
+            marqueeItems.push({
+                id: `msg-${index}`,
+                title: Math.floor(index / 3) % 2 === 0
+                    ? " • Hey Zuck - Tear down the wall. • "
+                    : " • Why are you paying Mr. Zuckerberg to reach your own friends? • ",
+                author_name: '', // No author name for message
+                color: '#F97316' // Orange
+            });
+        }
+    });
 
     return (
-        <div className="pb-20 min-h-screen">
-            {/* 30px space bar under navigation */}
-            <div className="h-[30px] w-full"></div>
-            {/* Hero Section */}
-            <section className="relative w-full pt-10 pb-20">
-                {/* ... existing hero content ... */}
-                <div className="container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    {/* Left Column: Text */}
-                    <div className="max-w-2xl">
-                        {/* ... */}
-                        <div className="inline-flex items-center gap-1 bg-violet-500/20 border border-violet-500/30 text-violet-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
-                            <Sparkles size={12} /> Featured Series
+        <div className="min-h-screen bg-black text-white">
+            <Marquee items={marqueeItems} style={{ marginBottom: '30px' }} />
+
+            {/* Mondrian Grid */}
+            <div
+                className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 auto-rows-[200px] gap-4"
+                style={{ paddingLeft: '50px', paddingRight: '50px', paddingTop: '20px', paddingBottom: '20px' }}
+            >
+                {works.map((work, index) => (
+                    <Link
+                        to={getWorkLink(work.type, work.id)}
+                        key={`${work.type}-${work.id}`}
+                        className={`relative group overflow-hidden border border-gray-800 bg-gray-900 ${getGridClass(index)}`}
+                    >
+                        {work.cover_image_url ? (
+                            <img
+                                src={work.cover_image_url}
+                                alt={work.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
+                                No Image
+                            </div>
+                        )}
+
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                            <h3 className="text-orange-500 font-bold text-lg leading-tight mb-1">{work.title}</h3>
+                            <p className="text-white text-sm">{work.author_name}</p>
+                            <span className="text-xs text-gray-400 mt-2 uppercase tracking-wide border border-gray-600 px-2 py-0.5 rounded-full w-fit">
+                                {work.type}
+                            </span>
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 leading-tight">
-                            {featuredBook.title}
-                        </h1>
-                        <p className="text-xl text-zinc-300 mb-8 font-light max-w-lg leading-relaxed">
-                            {featuredBook.blurb}
-                        </p>
-                        <div className="flex justify-start">
-                            <Link to={`/book/${featuredBook.id}`} className="text-white hover:text-violet-400 font-bold text-lg underline decoration-violet-500 underline-offset-4 transition-colors">
-                                Start Reading
-                            </Link>
-                        </div>
-                    </div>
+                    </Link>
+                ))}
+            </div>
 
-                    {/* Right Column: Feature Image */}
-                    <div className="relative">
-                        <div className="translate-x-[20px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative z-10 w-full max-w-[320px] mx-auto rotate-3 hover:rotate-0 transition-all duration-500">
-                            <img src={featuredBook.coverImage} className="w-full h-full object-cover" alt={featuredBook.title} />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Spacer for visual separation */}
-            <div className="h-20 w-full"></div>
-
-            {/* Trending Section (Rows 1 & 2) */}
-            <section className="container">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold text-white">Trending Now</h2>
-                    <TrendingUp className="text-violet-500" />
-                </div>
-
-                <div className="h-8 w-full"></div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-10">
-                    {trendingBooks.map((book, index) => (
-                        <BookCard key={`${book.id}-${index}`} book={book} />
-                    ))}
-                </div>
-            </section>
-
-            {/* Spacer between sections */}
-            <div className="h-20 w-full"></div>
-
-            {/* New Arrivals Section (Rows 3 & 4) */}
-            <section className="container">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold text-white">New Arrivals</h2>
-                    <Calendar className="text-amber-500" />
-                </div>
-
-                <div className="h-8 w-full"></div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-10">
-                    {newArrivalsBooks.map((book, index) => (
-                        <BookCard key={`new-${book.id}-${index}`} book={book} />
-                    ))}
-                </div>
-            </section>
-
-            {/* Spacer before footer */}
-            <div className="h-32 w-full"></div>
+            {works.length === 0 && (
+                <div className="text-center text-gray-500 mt-20">No works found in the feed.</div>
+            )}
         </div>
     );
 };

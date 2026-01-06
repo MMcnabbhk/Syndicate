@@ -14,7 +14,7 @@ const NotificationCenter = () => {
             try {
                 // In a real app with auth context, get userId from there.
                 // Here we rely on the backend default or session.
-                const response = await fetch('http://localhost:4000/api/notifications');
+                const response = await fetch('/api/notifications');
                 if (response.ok) {
                     const data = await response.json();
                     const count = data.filter(n => !n.is_read).length;

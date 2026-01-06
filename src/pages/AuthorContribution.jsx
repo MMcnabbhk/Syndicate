@@ -109,7 +109,7 @@ const AuthorContribution = () => {
         const createIntent = async () => {
             setPaymentError(null);
             try {
-                const res = await fetch('http://localhost:4000/api/payments/create-payment-intent', {
+                const res = await fetch('/api/payments/create-payment-intent', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: currentAmount, currency: 'usd' }),
@@ -141,7 +141,7 @@ const AuthorContribution = () => {
     const handleSuccess = async () => {
         // Create notification on success
         try {
-            await fetch('http://localhost:4000/api/notifications/create', {
+            await fetch('/api/notifications/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

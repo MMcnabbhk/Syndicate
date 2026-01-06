@@ -49,7 +49,7 @@ const ManageWorks = () => {
     const fetchWorks = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/authors/${id}/profile`);
+            const response = await fetch(`/api/authors/${id}/profile`);
             const data = await response.json();
 
             if (data && data.works) {
@@ -96,7 +96,7 @@ const ManageWorks = () => {
         }
         setLoadingChapters(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/novels/${work.id}/chapters`);
+            const response = await fetch(`/api/novels/${work.id}/chapters`);
             const data = await response.json();
             setChapters(data || []);
         } catch (err) {
@@ -128,7 +128,7 @@ const ManageWorks = () => {
         };
 
         try {
-            const res = await fetch(`http://localhost:4000${endpoint}/${selectedWork.id}`, {
+            const res = await fetch(`${endpoint}/${selectedWork.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -164,7 +164,7 @@ const ManageWorks = () => {
                 }));
 
                 // Fire and forget update (optimistic)
-                fetch('http://localhost:4000/api/works/reorder', {
+                fetch('/api/works/reorder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ updates })

@@ -4,6 +4,7 @@ import {
     Image as ImageIcon,
     List, ListOrdered, AlignLeft, AlignCenter, AlignRight, ChevronDown, X, Cloud, PlusCircle
 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = false }) => {
     // Initialize state from props or defaults
@@ -570,7 +571,7 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                                     fontSize: '19px', // Default size if not specified in paste
                                     caretColor: 'white'
                                 }}
-                                dangerouslySetInnerHTML={{ __html: content }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
                                 data-placeholder="Paste your text here"
                                 onBlur={(e) => {
                                     if (e.currentTarget.innerHTML === '<br>') {

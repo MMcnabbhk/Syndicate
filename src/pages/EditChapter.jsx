@@ -5,6 +5,7 @@ import {
     ImageIcon, List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
     ChevronDown, Save, ArrowLeft
 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 const EditChapter = () => {
     const { authorId, workId, chapterId } = useParams();
@@ -25,7 +26,7 @@ const EditChapter = () => {
     useEffect(() => {
         const fetchChapters = async () => {
             try {
-                const res = await fetch(`http://localhost:4000/api/novels/${workId}/chapters`);
+                const res = await fetch(`/api/novels/${workId}/chapters`);
                 if (!res.ok) throw new Error('Failed to fetch chapters');
                 const data = await res.json();
                 setChapters(data || []);
@@ -36,7 +37,7 @@ const EditChapter = () => {
 
         const fetchWork = async () => {
             try {
-                const res = await fetch(`http://localhost:4000/api/novels/${workId}`);
+                const res = await fetch(`/api/novels/${workId}`);
                 if (!res.ok) throw new Error('Failed to fetch work');
                 const data = await res.json();
                 setWorkTitle(data.title);
@@ -54,7 +55,7 @@ const EditChapter = () => {
         const fetchChapter = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`http://localhost:4000/api/chapters/${chapterId}`);
+                const res = await fetch(`/api/chapters/${chapterId}`);
                 if (!res.ok) throw new Error('Failed to fetch chapter');
                 const data = await res.json();
                 setTitle(data.title);
@@ -73,7 +74,7 @@ const EditChapter = () => {
 
     const handleSave = async () => {
         try {
-            const res = await fetch(`http://localhost:4000/api/chapters/${chapterId}`, {
+            const res = await fetch(`/api/chapters/${chapterId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -87,7 +88,7 @@ const EditChapter = () => {
             alert('Chapter updated successfully');
 
             // Refresh chapters list to reflect title/number changes
-            const chaptersRes = await fetch(`http://localhost:4000/api/novels/${workId}/chapters`);
+            const chaptersRes = await fetch(`/api/novels/${workId}/chapters`);
             const chaptersData = await chaptersRes.json();
             setChapters(chaptersData || []);
 
@@ -269,7 +270,7 @@ const EditChapter = () => {
                                         fontSize: '18px',
                                         caretColor: 'white'
                                     }}
-                                    dangerouslySetInnerHTML={{ __html: content }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
                                 />
                             </div>
                         </>

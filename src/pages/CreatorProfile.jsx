@@ -56,7 +56,7 @@ const CreatorProfile = () => {
     React.useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/authors/me', { credentials: 'include' });
+                const response = await fetch('/api/authors/me', { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
 
@@ -238,7 +238,7 @@ const CreatorProfile = () => {
                 profile_image_url: formData.profileImages[0]?.url || ''
             };
 
-            const response = await fetch('http://localhost:4000/api/authors/me', {
+            const response = await fetch('/api/authors/me', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

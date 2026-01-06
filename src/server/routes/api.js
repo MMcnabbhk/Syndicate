@@ -239,7 +239,7 @@ router.get('/novels/:id/chapters', async (req, res) => {
 
 router.post('/chapters', isAuthenticated, async (req, res) => {
     try {
-        const { novel_id, title, chapter_number, content_html } = req.body;
+        const { novel_id, title, chapter_number, content_html, chapterSpotifyLink } = req.body;
         if (!novel_id || !title || !chapter_number) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
@@ -255,6 +255,11 @@ router.post('/chapters', isAuthenticated, async (req, res) => {
         // Sanitize
         req.body.title = sanitizeText(title);
         req.body.content_html = sanitizeHtml(content_html);
+
+        // Map frontend fields (chapterSpotifyLink, etc.) to backend external_url
+        if (req.body.chapterSpotifyLink) req.body.external_url = req.body.chapterSpotifyLink;
+        // Also allow direct external_url if sent by other clients
+
 
         const chapter = await Chapter.create(req.body);
         res.status(201).json(chapter);
@@ -308,7 +313,22 @@ router.put('/authors/me', isAuthenticated, async (req, res) => {
 });
 
 // Authors endpoints
-router.get('/authors', getAll(Author));
+router.get('/authors', async (req, res) => {
+    try {
+        const authors = await Author.findAll();
+        // Enrich with recent works
+        const authorsWithWorks = await Promise.all(authors.map(async (author) => {
+            const works = await Author.getRecentWorks(author.id);
+            // author is likely an Author instance, need to handle that or just assign property
+            // Author class structure: constructor takes object. JSON.stringify usually handles class instance fields.
+            // But better to return plain object here if we manipulate it.
+            return { ...author, works };
+        }));
+        res.json(authorsWithWorks);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 router.get('/authors/:id', getOne(Author));
 router.post('/authors', isAuthenticated, create(Author));
 router.put('/authors/:id', isAuthenticated, isAuthorOwner, update(Author));

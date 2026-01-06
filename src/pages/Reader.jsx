@@ -74,6 +74,7 @@ const Reader = () => {
                 <meta name="robots" content="noai, noimageai" />
                 <meta name="googlebot" content="noai" />
                 <meta name="googlebot-news" content="nosnippet" />
+                <link rel="canonical" href={window.location.href.split('?')[0]} />
             </Helmet>
 
             {/* Toolbar */}

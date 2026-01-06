@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 
 import { ChevronLeft, Facebook, Instagram, Twitter, Music, Book, PenTool, Headphones, Library, Play, Share2, Star, ChevronRight, Globe, Linkedin, AtSign, Video, Send, Cloud, ShoppingBag, BookOpen, Heart } from 'lucide-react';
 import { useAuthors } from '../hooks/useData';
+import FollowButton from '../components/FollowButton';
 
 const AuthorProfile = () => {
     const { id } = useParams();
@@ -25,8 +26,7 @@ const AuthorProfile = () => {
 
     useEffect(() => {
         setLoading(true);
-        // Use absolute URL to bypass proxy issues
-        fetch(`http://localhost:4000/api/authors/${id}/profile`)
+        fetch(`/api/authors/${id}/profile`)
             .then(res => res.json())
             .then(profileData => {
                 setData(profileData);
@@ -184,19 +184,10 @@ const AuthorProfile = () => {
 
                                         <div style={{ height: '20px' }}></div>
 
-                                        <div
-                                            className="flex items-center gap-3 cursor-pointer group"
-                                            onClick={() => {
-                                                setIsSubscribed(!isSubscribed);
-                                                console.log(`Subscription to ${author.name}: ${!isSubscribed ? 'Active' : 'Inactive'}`);
-                                            }}
-                                        >
-                                            <div className={`w-5 h-5 rounded-full border border-white/30 flex items-center justify-center transition-colors ${isSubscribed ? 'bg-orange-500 border-orange-500' : 'group-hover:border-white/50'}`}>
-                                                {isSubscribed && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                                            </div>
-                                            <span className="text-sm font-medium text-white">
-                                                Update me on new Works from {author.name}
-                                            </span>
+                                        <div className="flex items-center gap-4 mt-6">
+                                            <FollowButton
+                                                authorId={id}
+                                            />
                                         </div>
                                     </div>
                                 </div>

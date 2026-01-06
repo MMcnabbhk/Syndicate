@@ -12,6 +12,7 @@ import invitesRouter from './routes/invites.js';
 import notificationsRouter from './routes/notifications.js';
 import subscriptionsRouter from './routes/subscriptions.js';
 import paymentsRouter from './routes/payments.js';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -92,13 +93,19 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api/payments', paymentsRouter);
 
+import imageRouter from './routes/images.js';
+import feedRouter from './routes/feed.js';
+app.use('/api/images', imageRouter);
+app.use('/api/feed', feedRouter);
+
+
 // Serve static files from the public directory
 app.use(express.static('public'));
 
 const PORT = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+        console.log('Server running on port ' + PORT);
     });
 }
 

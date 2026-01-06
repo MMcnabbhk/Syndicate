@@ -55,7 +55,7 @@ const NewWork = () => {
 
             // If we haven't created the work yet in this session, create it
             if (!workId) {
-                const res = await fetch(`http://localhost:4000${endpoint}`, {
+                const res = await fetch(`${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -66,7 +66,7 @@ const NewWork = () => {
                 setCurrentWorkId(workId); // Save for subsequent chapters
             } else {
                 // Update existing work
-                await fetch(`http://localhost:4000${endpoint}/${workId}`, {
+                await fetch(`${endpoint}/${workId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -118,7 +118,7 @@ const NewWork = () => {
                 };
             }
 
-            const res = await fetch(`http://localhost:4000${endpoint}`, {
+            const res = await fetch(`${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

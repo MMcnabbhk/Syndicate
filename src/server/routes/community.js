@@ -127,4 +127,66 @@ router.delete('/fan/:userId', isAuthenticated, async (req, res) => {
     }
 });
 
+router.get('/following/:authorId', async (req, res) => {
+    try {
+        // If not logged in, they can't be following
+        if (!req.isAuthenticated || !req.isAuthenticated()) {
+            return res.json({ isFollowing: false });
+        }
+
+        const { authorId } = req.params;
+        const userId = req.user.id;
+        const { rows } = await db.query(
+            'SELECT 1 FROM author_followers WHERE user_id = ? AND author_id = ?',
+            [userId, authorId]
+        );
+        res.json({ isFollowing: rows.length > 0 });
+    } catch (err) {
+        console.error('Error checking follow status:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/follow/:authorId', isAuthenticated, async (req, res) => {
+    try {
+        const { authorId } = req.params;
+        const userId = req.user.id;
+
+        // Check if already following
+        const { rows } = await db.query(
+            'SELECT 1 FROM author_followers WHERE user_id = ? AND author_id = ?',
+            [userId, authorId]
+        );
+
+        if (rows.length === 0) {
+            await db.query(
+                'INSERT INTO author_followers (user_id, author_id) VALUES (?, ?)',
+                [userId, authorId]
+            );
+        }
+
+        res.json({ success: true, isFollowing: true });
+    } catch (err) {
+        console.error('Error following author:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/unfollow/:authorId', isAuthenticated, async (req, res) => {
+    try {
+        const { authorId } = req.params;
+        const userId = req.user.id;
+
+        await db.query(
+            'DELETE FROM author_followers WHERE user_id = ? AND author_id = ?',
+            [userId, authorId]
+        );
+
+        res.json({ success: true, isFollowing: false });
+    } catch (err) {
+        console.error('Error unfollowing author:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 export default router;

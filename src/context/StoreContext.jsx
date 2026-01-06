@@ -31,7 +31,7 @@ export const StoreProvider = ({ children }) => {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                const res = await fetch('http://localhost:4000/api/auth/me', {
+                const res = await fetch('/api/auth/me', {
                     credentials: 'include' // Critical for sending the session cookie
                 });
                 const data = await res.json();
@@ -108,7 +108,7 @@ export const StoreProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await fetch('http://localhost:4000/api/auth/logout', { method: 'POST' });
+            await fetch('/api/auth/logout', { method: 'POST' });
         } catch (e) {
             console.error("Logout error", e);
         }

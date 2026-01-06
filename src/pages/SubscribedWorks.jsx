@@ -16,7 +16,7 @@ const SubscribedWorks = () => {
             }
 
             try {
-                const response = await fetch('http://localhost:4000/api/subscriptions', {
+                const response = await fetch('/api/subscriptions', {
                     credentials: 'include'
                 });
                 if (response.ok) {
@@ -38,7 +38,7 @@ const SubscribedWorks = () => {
     const handleUnsubscribe = async (workId) => {
         if (window.confirm("Are you sure you want to unsubscribe from this work?")) {
             try {
-                const response = await fetch(`http://localhost:4000/api/subscriptions/${workId}`, {
+                const response = await fetch(`/api/subscriptions/${workId}`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });

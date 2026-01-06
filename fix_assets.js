@@ -1,67 +1,57 @@
 
-import db from './src/server/db.js';
-import 'dotenv/config';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD ?? 'password',
+    database: process.env.DB_NAME || 'serialized_novels',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
 
 async function fixAssets() {
-    console.log('--- Fixing Assets (Covers & Profile) ---');
-
-    const authorID = '1';
-
-    // 1. Update Author Profile Image
-    console.log(`1. Updating Michael James Profile Image for ID: ${authorID}...`);
     try {
-        await db.query('UPDATE authors SET profile_image_url = ? WHERE id = ?', [
-            '/michael_james.png',
-            authorID
-        ]);
-        console.log('✅ Updated Author Profile.');
-    } catch (e) {
-        console.error('❌ Error updating profile:', e.message);
+        console.log("Fixing broken assets...");
+
+        // Fix 1: Update the novel with example.com link
+        // ID: 1421aee6-e5d9-4730-9cf9-fa00392d52c2
+        // Use cover_chronomancer.png
+        const [res1] = await pool.execute(
+            "UPDATE novels SET cover_image_url = '/assets/cover_chronomancer.png' WHERE cover_image_url LIKE '%example.com%'"
+        );
+        console.log(`Updated ${res1.affectedRows} novels (example.com -> chronomancer).`);
+
+        // Fix 2: Update Neon Dreams visual art
+        // ID: 2
+        // Use cover_neon.png
+        await pool.execute("UPDATE visual_arts SET cover_image_url = '/assets/cover_neon.png' WHERE id = 2");
+
+        // Fix other Visual Arts placeholders
+        const updates = [
+            { id: 1, url: '/assets/cover_deep.png' }, // Urban Decay
+            { id: 3, url: '/assets/cover_chronomancer.png' }, // Abstract Thoughts
+            { id: 4, url: '/assets/michael_james_profile.jpg' }, // Charcoal Portraits
+            { id: 5, url: '/assets/island_thieves_new.jpg' }, // Woodblock Prints
+            { id: 6, url: '/assets/cover_water_washes.jpg' }  // Nature's Fury
+        ];
+
+        for (const update of updates) {
+            const [res] = await pool.execute(
+                "UPDATE visual_arts SET cover_image_url = ? WHERE id = ?",
+                [update.url, update.id]
+            );
+            console.log(`Updated ID ${update.id}: ${res.affectedRows} rows.`);
+        }
+
+    } catch (err) {
+        console.error("Update Failed:", err);
+    } finally {
+        await pool.end();
     }
-
-    // 2. Update Book Covers by ID (b1, b2, b3, b5)
-    // Water Washes Earth (b2)
-    console.log('2. Updating Water Washes Earth (b2)...');
-    try {
-        await db.query('UPDATE novels SET cover_image_url = ? WHERE id = ?', [
-            'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1744&auto=format&fit=crop',
-            'b2'
-        ]);
-        console.log('✅ Success b2');
-    } catch (e) { console.error('❌ b2 failed:', e.message); }
-
-    // Island Of The Thieves (b1)
-    console.log('3. Updating Island Of The Thieves (b1)...');
-    try {
-        await db.query('UPDATE novels SET cover_image_url = ? WHERE id = ?', [
-            'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=1746&auto=format&fit=crop',
-            'b1'
-        ]);
-        console.log('✅ Success b1');
-    } catch (e) { console.error('❌ b1 failed:', e.message); }
-
-    // Season of Light (b3)
-    console.log('4. Updating Season of Light (b3)...');
-    try {
-        await db.query('UPDATE novels SET cover_image_url = ? WHERE id = ?', [
-            'https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?q=80&w=1674&auto=format&fit=crop',
-            'b3'
-        ]);
-        console.log('✅ Success b3');
-    } catch (e) { console.error('❌ b3 failed:', e.message); }
-
-    // Tyger (b5)
-    console.log('5. Updating Tyger (b5)...');
-    try {
-        await db.query('UPDATE novels SET cover_image_url = ? WHERE id = ?', [
-            'https://images.unsplash.com/photo-1500468776721-0257e3f2215c?q=80&w=1740&auto=format&fit=crop',
-            'b5'
-        ]);
-        console.log('✅ Success b5');
-    } catch (e) { console.error('❌ b5 failed:', e.message); }
-
-    console.log('🎉 All assets updated.');
-    process.exit(0);
 }
 
 fixAssets();

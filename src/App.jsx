@@ -44,61 +44,67 @@ import AdminMessaging from './pages/AdminMessaging';
 import AdminFinancials from './pages/AdminFinancials';
 import { StoreProvider } from './context/StoreContext';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
 function App() {
   console.log('App component rendering');
   return (
-    <BrowserRouter>
-      <StoreProvider>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="discover" element={<Discover />} />
-            <Route path="audiobooks" element={<AudioBooks />} />
-            <Route path="audiobooks-list" element={<AudioBooksList />} />
-            <Route path="stories" element={<Stories />} />
-            <Route path="poetry" element={<Poetry />} />
-            <Route path="visual-arts" element={<VisualArts />} />
-            <Route path="poetry-collections" element={<PoetryCollections />} />
-            <Route path="setup-profile" element={<ReaderProfileSetup />} />
-            <Route path="creator-setup" element={<CreatorProfileSetup />} />
-            <Route path="syndicate-work" element={<SyndicateWorkSetup />} />
-            <Route path="new-work" element={<NewWork />} />
-            <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
-            <Route path="book/:id" element={<BookProfile />} />
-            <Route path="book/:id/contribute" element={<AuthorContribution />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <StoreProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="discover" element={<Discover />} />
+              <Route path="audiobooks" element={<AudioBooks />} />
+              <Route path="audiobooks-list" element={<AudioBooksList />} />
+              <Route path="stories" element={<Stories />} />
+              <Route path="poetry" element={<Poetry />} />
+              <Route path="visual-arts" element={<VisualArts />} />
+              <Route path="poetry-collections" element={<PoetryCollections />} />
+              <Route path="setup-profile" element={<ReaderProfileSetup />} />
+              <Route path="creator-setup" element={<CreatorProfileSetup />} />
+              <Route path="syndicate-work" element={<SyndicateWorkSetup />} />
+              <Route path="new-work" element={<NewWork />} />
+              <Route path="profile" element={<div className="container py-10 text-white">Profile Placeholder</div>} />
+              <Route path="book/:id" element={<BookProfile />} />
+              <Route path="book/:id/contribute" element={<AuthorContribution />} />
 
-            <Route path="author/:id" element={<AuthorProfile />} />
-            <Route path="author/:id/contribute" element={<AuthorContribution />} />
-            <Route path="read/:bookId/:chapterId" element={<Reader />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="author/:id/manage-works" element={<ManageWorks />} />
-            <Route path="author/:authorId/work/:workId/chapter/:chapterId/edit" element={<EditChapter />} />
-            <Route path="manage-profile" element={<CreatorProfile />} />
-            <Route path="community" element={<FansAndContributors />} />
-            <Route path="invites" element={<ManageInvites />} />
-            <Route path="money" element={<Money />} />
-            <Route path="notifications" element={<Notifications />} />
+              <Route path="author/:id" element={<AuthorProfile />} />
+              <Route path="author/:id/contribute" element={<AuthorContribution />} />
+              <Route path="read/:bookId/:chapterId" element={<Reader />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="author/:id/manage-works" element={<ManageWorks />} />
+              <Route path="author/:authorId/work/:workId/chapter/:chapterId/edit" element={<EditChapter />} />
+              <Route path="manage-profile" element={<CreatorProfile />} />
+              <Route path="community" element={<FansAndContributors />} />
+              <Route path="invites" element={<ManageInvites />} />
+              <Route path="money" element={<Money />} />
+              <Route path="notifications" element={<Notifications />} />
 
-            <Route path="settings" element={<Settings />} />
-            <Route path="subscribed-works" element={<SubscribedWorks />} />
-            <Route path="following-creators" element={<FollowingCreators />} />
-            <Route path="reader-contributions" element={<ReaderContributions />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="subscribed-works" element={<SubscribedWorks />} />
+              <Route path="following-creators" element={<FollowingCreators />} />
+              <Route path="reader-contributions" element={<ReaderContributions />} />
 
-            {/* Admin Routes */}
-            <Route path="admin/dashboard" element={<AdminDashboard />} />
-            <Route path="admin/users" element={<AdminUsers />} />
-            <Route path="admin/messages" element={<AdminMessaging />} />
-            <Route path="admin/financials" element={<AdminFinancials />} />
+              {/* Admin Routes */}
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route path="admin/users" element={<AdminUsers />} />
+              <Route path="admin/messages" element={<AdminMessaging />} />
+              <Route path="admin/financials" element={<AdminFinancials />} />
 
-            <Route path="library" element={<Library />} />
-            <Route path="faq" element={<FAQ />} />
-            <Route path="about" element={<About />} />
-            <Route path="manifesto" element={<Manifesto />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </StoreProvider>
-    </BrowserRouter>
+              <Route path="library" element={<Library />} />
+              <Route path="faq" element={<FAQ />} />
+              <Route path="about" element={<About />} />
+              <Route path="manifesto" element={<Manifesto />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </StoreProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

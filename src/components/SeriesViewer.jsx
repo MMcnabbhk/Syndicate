@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Lock, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import DOMPurify from 'dompurify';
+import { Helmet } from 'react-helmet';
 
 const SeriesViewer = ({ workId, workType, workTitle }) => {
     const [chapters, setChapters] = useState([]);
@@ -53,6 +55,9 @@ const SeriesViewer = ({ workId, workType, workTitle }) => {
 
     return (
         <div className="max-w-3xl mx-auto py-20 px-6">
+            <Helmet>
+                <link rel="canonical" href={currentChapter.external_url || window.location.href.split('?')[0]} />
+            </Helmet>
             {/* Chapter Navigation Header */}
             <div className="flex items-center justify-between mb-12 bg-zinc-900/80 backdrop-blur p-4 rounded-2xl border border-white/5 sticky top-20 z-40">
                 <button
@@ -86,7 +91,7 @@ const SeriesViewer = ({ workId, workType, workTitle }) => {
                 {currentChapter.isUnlocked ? (
                     <article
                         className="prose prose-invert prose-zinc max-w-none animate-in fade-in slide-in-from-bottom-4 duration-700"
-                        dangerouslySetInnerHTML={{ __html: currentChapter.content_html }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentChapter.content_html) }}
                     />
                 ) : currentChapter.isGated ? (
                     <div className="flex flex-col items-center justify-center py-24 text-center bg-violet-950/10 rounded-3xl border border-violet-500/20 backdrop-blur-sm animate-in zoom-in-95 duration-500">

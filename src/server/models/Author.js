@@ -46,21 +46,70 @@ export default class Author {
         this.novel_count = novel_count || 0;
     }
 
-    static async findAll() {
+    static async findAll(limit = 10, offset = 0, seed = null) {
         try {
+            // Ensure limit and offset are integers
+            const limitInt = parseInt(limit, 10) || 10;
+            const offsetInt = parseInt(offset, 10) || 0;
+            const seedInt = seed ? parseInt(seed, 10) : null;
+
+            let orderBy = 'ORDER BY a.created_at DESC';
+            let params = [];
+
+            if (seedInt !== null && !isNaN(seedInt)) {
+                // Use seeded random order for consistent pagination
+                orderBy = `ORDER BY RAND(${seedInt})`;
+            }
+
             const sql = `
                 SELECT a.*, 
-                (SELECT COUNT(*) FROM novels WHERE author_id = a.id) as novel_count
-                -- (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
-                -- (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
-                -- (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
-                -- (SELECT COUNT(*) FROM poetry_collections WHERE author_id = a.id) as collection_count
+                (SELECT COUNT(*) FROM novels WHERE author_id = a.id) as novel_count,
+                (SELECT COUNT(*) FROM poems WHERE author_id = a.id) as poem_count,
+                 (SELECT COUNT(*) FROM short_stories WHERE author_id = a.id) as story_count,
+                 (SELECT COUNT(*) FROM audiobooks WHERE author_id = a.id) as audiobook_count,
+                 (SELECT COUNT(*) FROM visual_arts WHERE author_id = a.id) as collection_count
                 FROM authors a
+                WHERE a.profile_image_url IS NOT NULL
+                ${orderBy}
+                LIMIT ${limitInt} OFFSET ${offsetInt}
             `;
+            // Use interpolated values to avoid potential binding issues with LIMIT/OFFSET in some drivers
+            // If using RAND(seed), the seed is interpolated too in this string construction or passed?
+            // Since I constructed orderBy string with interpolated seedInt, it's fine.
             const { rows } = await db.query(sql);
             return rows.map(row => new Author(row));
         } catch (err) {
             console.error("Database error in Author.findAll:", err.message);
+            return [];
+        }
+    }
+
+    // ... (rest of class) ...
+
+    static async getRecentWorks(authorId, limit = 10) {
+        // Union query to get latest works across all types for a specific author
+        const sql = `
+            (SELECT id, title, 'Novel' as type, published_at, cover_image_url FROM novels WHERE author_id = ?)
+            UNION ALL
+            (SELECT id, title, 'Audiobook' as type, published_at, cover_image_url FROM audiobooks WHERE author_id = ?)
+            UNION ALL
+            (SELECT id, title, 'Short Story' as type, published_at, cover_image_url FROM short_stories WHERE author_id = ?)
+            UNION ALL
+            (SELECT id, title, 'Poem' as type, published_at, cover_image_url FROM poems WHERE author_id = ?)
+            UNION ALL
+            (SELECT id, title, 'Visual Art' as type, published_at, cover_image_url FROM visual_arts WHERE author_id = ?)
+            ORDER BY published_at DESC
+            LIMIT ${limit}
+        `;
+        try {
+            // Fix for visual_arts author_id (INT) vs authors.id (String/UUID)
+            // If authorId is not a number, bind 0 for visual_arts to avoid error
+            const visualArtAuthorId = isNaN(Number(authorId)) ? 0 : authorId;
+
+            const { rows } = await db.query(sql, [authorId, authorId, authorId, authorId, visualArtAuthorId]);
+            return rows;
+        } catch (err) {
+            console.error(`Error fetching recent works for author ${authorId}:`, err.message);
             return [];
         }
     }
@@ -229,3 +278,5 @@ export default class Author {
         return { success: true, message: 'Payout requested successfully' };
     }
 }
+
+

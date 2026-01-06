@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adaptNovelForUI, adaptAudiobookForUI, adaptPoemForUI, adaptShortStoryForUI, adaptAuthorForUI } from '../utils/dataAdapter';
 
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = '/api';
 
 // Generic fetch hook
 function useFetch(url) {

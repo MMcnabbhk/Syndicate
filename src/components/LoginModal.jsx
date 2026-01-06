@@ -17,7 +17,7 @@ const LoginModal = () => {
 
         // DEV PATH: Use dev-login for ALL emails in this environment to ensure session availability
         try {
-            const res = await fetch('http://localhost:4000/api/auth/dev-login', {
+            const res = await fetch('/api/auth/dev-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email }),
@@ -42,7 +42,7 @@ const LoginModal = () => {
 
     const handleSocialLogin = () => {
         // Redirect to backend OAuth route
-        window.location.href = 'http://localhost:4000/api/auth/google';
+        window.location.href = '/api/auth/google';
     };
 
     return (
@@ -122,7 +122,7 @@ const LoginModal = () => {
 
                         {/* Microsoft-style */}
                         <button
-                            onClick={() => window.location.href = 'http://localhost:4000/api/auth/microsoft'}
+                            onClick={() => window.location.href = '/api/auth/microsoft'}
                             className="flex-1 bg-[#1a1a1a] border border-zinc-800 hover:border-zinc-600 rounded-lg h-[44px] flex items-center justify-center transition-colors"
                             title="Continue with Microsoft"
                         >
@@ -136,7 +136,7 @@ const LoginModal = () => {
 
                         {/* Apple */}
                         <button
-                            onClick={() => window.location.href = 'http://localhost:4000/api/auth/apple'}
+                            onClick={() => window.location.href = '/api/auth/apple'}
                             className="flex-1 bg-[#1a1a1a] border border-zinc-800 hover:border-zinc-600 rounded-lg h-[44px] flex items-center justify-center transition-colors"
                             title="Continue with Apple"
                         >

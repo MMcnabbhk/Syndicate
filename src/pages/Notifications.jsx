@@ -14,7 +14,7 @@ const Notifications = () => {
                 const userId = 'demo-user-id';
                 // In real app, we'd use the auth context or cookie
 
-                const response = await fetch(`http://localhost:4000/api/notifications?userId=${userId}`);
+                const response = await fetch(`/api/notifications?userId=${userId}`);
                 if (response.ok) {
                     const data = await response.json();
 
