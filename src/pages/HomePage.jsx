@@ -6,24 +6,15 @@ import Marquee from '../components/Marquee';
 const getWorkLink = (type, id) => {
     switch (type) {
         case 'Novel': return `/book/${id}`;
-        case 'Audiobook': return `/audiobooks`; // Fallback until AudiobookProfile exists
-        case 'Short Story': return `/stories`; // Fallback
-        case 'Poem': return `/poetry`; // Fallback
-        case 'Visual Art': return `/visual-arts`; // Fallback
+        case 'Audiobook': return `/audiobooks`;
+        case 'Short Story': return `/stories`;
+        case 'Poem': return `/poetry`;
+        case 'Visual Art': return `/visual-arts`;
         default: return `/`;
     }
 };
 
-// Function to deterministically generate grid classes based on index to ensure "Mondrian" feel
-// but consistent render. Randomness can be seeded or just index-based pattern.
 const getGridClass = (index) => {
-    // Pattern: Big Square, Tall, Wide, Small, Small, Wide, Big...
-    // 0: Big (2x2)
-    // 1: Tall (1x2)
-    // 2: Small (1x1)
-    // 3: Wide (2x1)
-    // 4: Small (1x1)
-    // etc.
     const pattern = [
         'col-span-2 row-span-2', // Big
         'col-span-1 row-span-2', // Tall
@@ -41,24 +32,58 @@ const getGridClass = (index) => {
 const HomePage = () => {
     const [works, setWorks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+
+    const fetchFeed = async (pageNum) => {
+        try {
+            const res = await fetch(`/api/feed?page=${pageNum}&limit=20`);
+            const data = await res.json();
+
+            if (Array.isArray(data)) {
+                if (data.length === 0) {
+                    setHasMore(false);
+                } else {
+                    setWorks(prev => pageNum === 1 ? data : [...prev, ...data]);
+                }
+            } else {
+                setWorks(pageNum === 1 ? [] : works);
+                setHasMore(false);
+            }
+        } catch (err) {
+            console.error("Failed to fetch feed", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchFeed = async () => {
-            try {
-                const res = await fetch('/api/feed');
-                const data = await res.json();
-                setWorks(data);
-            } catch (err) {
-                console.error("Failed to fetch feed", err);
-            } finally {
-                setLoading(false);
+        fetchFeed(1);
+    }, []);
+
+    // Infinite scroll effect
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 && hasMore && !loading) {
+                setLoading(true);
+                setPage(prev => prev + 1);
             }
         };
 
-        fetchFeed();
-    }, []);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [hasMore, loading]);
 
-    if (loading) return <div className="text-white text-center mt-20">Loading Feed...</div>;
+    // Fetch more when page changes
+    useEffect(() => {
+        if (page > 1) {
+            fetchFeed(page);
+        }
+    }, [page]);
+
+    if (loading && works.length === 0) {
+        return <div className="text-white text-center mt-20">Loading Feed...</div>;
+    }
 
     // Prepare Marquee Items with Special Messages
     const marqueeItems = [];
@@ -71,25 +96,28 @@ const HomePage = () => {
                 title: Math.floor(index / 3) % 2 === 0
                     ? " • Hey Zuck - Tear down the wall. • "
                     : " • Why are you paying Mr. Zuckerberg to reach your own friends? • ",
-                author_name: '', // No author name for message
-                color: '#F97316' // Orange
+                author_name: '',
+                color: '#F97316'
             });
         }
     });
 
     return (
-        <div className="min-h-screen bg-black text-white">
-            <Marquee items={marqueeItems} style={{ marginBottom: '30px' }} />
+        <div className="min-h-screen bg-black text-white" style={{ paddingTop: '20px' }}>
+            {/* Marquee with left/right padding to align with grid */}
+            <div style={{ paddingLeft: '50px', paddingRight: '50px' }}>
+                <Marquee items={marqueeItems} style={{ marginBottom: '30px' }} />
+            </div>
 
             {/* Mondrian Grid */}
             <div
                 className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 auto-rows-[200px] gap-4"
-                style={{ paddingLeft: '50px', paddingRight: '50px', paddingTop: '20px', paddingBottom: '20px' }}
+                style={{ paddingLeft: '50px', paddingRight: '50px', paddingBottom: '20px' }}
             >
                 {works.map((work, index) => (
                     <Link
                         to={getWorkLink(work.type, work.id)}
-                        key={`${work.type}-${work.id}`}
+                        key={`${work.type}-${work.id}-${index}`}
                         className={`relative group overflow-hidden border border-gray-800 bg-gray-900 ${getGridClass(index)}`}
                     >
                         {work.cover_image_url ? (
@@ -116,7 +144,18 @@ const HomePage = () => {
                 ))}
             </div>
 
-            {works.length === 0 && (
+            {/* Loading indicator for infinite scroll */}
+            {loading && works.length > 0 && (
+                <div className="text-white text-center py-8">Loading more...</div>
+            )}
+
+            {/* End of content indicator */}
+            {!hasMore && works.length > 0 && (
+                <div className="text-center text-gray-500 py-8">No more works to load</div>
+            )}
+
+            {/* Empty state */}
+            {works.length === 0 && !loading && (
                 <div className="text-center text-gray-500 mt-20">No works found in the feed.</div>
             )}
         </div>
