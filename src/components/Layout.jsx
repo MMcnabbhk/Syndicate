@@ -33,10 +33,10 @@ const Layout = () => {
         /* Added pl-[40px] for 40px gutter as requested */
         <div className="min-h-screen flex flex-col pl-[40px]">
             {/* Navbar */}
-            <header className="sticky top-0 z-50 bg-[#333333]/80 backdrop-blur-md border-b border-white/5">
+            <header className="sticky top-0 z-50 bg-[#333333]/80 backdrop-blur-md border-b border-white/5" style={{ paddingTop: '20px' }}>
                 <div className="container h-16 flex items-center justify-center relative">
 
-                    <div className="absolute left-0 flex flex-col justify-center h-full">
+                    <div className="absolute flex flex-col justify-center h-full" style={{ left: '10px' }}>
                         <Link to="/" className="flex items-center gap-2 font-bold text-3xl leading-none" style={{ color: '#cc5500' }}>
                             <span>Syndicate</span>
                         </Link>
