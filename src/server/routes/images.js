@@ -31,8 +31,14 @@ router.get(/(.*)/, async (req, res) => {
         const quality = req.query.q ? parseInt(req.query.q) : 80;
         const format = req.query.f || 'webp'; // Default to webp
 
-        // Original file path
-        const originalPath = path.join(UPLOADS_DIR, relativePath);
+        // Original file path - with path traversal protection
+        const originalPath = path.resolve(UPLOADS_DIR, relativePath);
+
+        // Security: Ensure the resolved path is within UPLOADS_DIR to prevent path traversal attacks
+        if (!originalPath.startsWith(path.resolve(UPLOADS_DIR) + path.sep) &&
+            originalPath !== path.resolve(UPLOADS_DIR)) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
 
         // Check if original exists
         if (!fs.existsSync(originalPath)) {
