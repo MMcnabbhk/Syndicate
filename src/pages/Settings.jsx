@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Save, AlertTriangle, Download, MessageSquare, User, Shield, PauseCircle, Trash2, X, Loader2 } from 'lucide-react';
 
@@ -103,6 +103,7 @@ const Settings = () => {
         featureRequest: ''
     });
     const [status, setStatus] = useState('');
+    const timeoutRef = useRef(null);
 
     // Modal State
     const [modalConfig, setModalConfig] = useState({
@@ -111,6 +112,15 @@ const Settings = () => {
         message: '',
         onConfirm: () => { }
     });
+
+    // Cleanup timeouts on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleCopy = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -121,7 +131,11 @@ const Settings = () => {
         // In reality, post to backend
         setStatus('Feature request submitted! We appreciate your feedback.');
         setFormData({ ...formData, featureRequest: '' });
-        setTimeout(() => setStatus(''), 3000);
+        // Clear any existing timeout before setting a new one
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => setStatus(''), 3000);
     };
 
     // Actions that require verification
@@ -137,10 +151,15 @@ const Settings = () => {
 
     const performUsernameChange = () => {
         setStatus('Checking availability...');
+        // Clear any existing timeout before setting a new one
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
         // Mock delay
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             setStatus('Username updated successfully!');
-            setTimeout(() => setStatus(''), 3000);
+            // Clear and set a new timeout for the final status clear
+            timeoutRef.current = setTimeout(() => setStatus(''), 3000);
         }, 1000);
     };
 

@@ -99,14 +99,36 @@ const EditChapter = () => {
     };
 
     // Toolbar Handlers
+    // Note: Using legacy execCommand for now, but should migrate to a modern rich text editor
+    // library (Slate.js, Quill, TipTap) for better browser support and maintainability
     const handleFormat = (command) => {
-        document.execCommand(command, false, null);
+        // Check if execCommand is still supported
+        if (typeof document.execCommand !== 'function') {
+            console.warn('document.execCommand is not supported in this browser');
+            return;
+        }
+
+        try {
+            document.execCommand(command, false, null);
+        } catch (error) {
+            console.error('Error executing format command:', error);
+        }
     };
 
     const handleLink = () => {
         const url = prompt("Enter link URL:");
         if (url) {
-            document.execCommand('createLink', false, url);
+            // Check if execCommand is still supported
+            if (typeof document.execCommand !== 'function') {
+                console.warn('document.execCommand is not supported in this browser');
+                return;
+            }
+
+            try {
+                document.execCommand('createLink', false, url);
+            } catch (error) {
+                console.error('Error creating link:', error);
+            }
         }
     };
 
@@ -264,7 +286,11 @@ const EditChapter = () => {
                                 <div
                                     id="chapter-editor"
                                     contentEditable
-                                    onInput={(e) => setContent(e.currentTarget.innerHTML)}
+                                    onInput={(e) => {
+                                        // Sanitize innerHTML to prevent XSS
+                                        const sanitized = DOMPurify.sanitize(e.currentTarget.innerHTML);
+                                        setContent(sanitized);
+                                    }}
                                     className="w-full text-white placeholder-zinc-500 p-8 focus:outline-none min-h-[600px] leading-relaxed"
                                     style={{
                                         fontSize: '18px',

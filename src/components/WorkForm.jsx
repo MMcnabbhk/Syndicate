@@ -102,10 +102,25 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
     };
 
     // Toolbar Handlers
+    // Note: Using legacy execCommand for now, but should migrate to a modern rich text editor
+    // library (Slate.js, Quill, TipTap) for better browser support and maintainability
     const handleFormat = (command, value = null) => {
-        document.execCommand(command, false, value);
-        const editor = document.querySelector('[contentEditable]');
-        if (editor) setContent(editor.innerHTML);
+        // Check if execCommand is still supported
+        if (typeof document.execCommand !== 'function') {
+            console.warn('document.execCommand is not supported in this browser');
+            return;
+        }
+
+        try {
+            document.execCommand(command, false, value);
+            const editor = document.querySelector('[contentEditable]');
+            if (editor) {
+                const sanitized = DOMPurify.sanitize(editor.innerHTML);
+                setContent(sanitized);
+            }
+        } catch (error) {
+            console.error('Error executing format command:', error);
+        }
     };
 
     const handleLink = () => {
@@ -574,8 +589,8 @@ const WorkForm = ({ initialData = {}, onSave, onAddNextChapter, isEditing = fals
                                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
                                 data-placeholder="Paste your text here"
                                 onBlur={(e) => {
-                                    if (e.currentTarget.innerHTML === '<br>') {
-                                        e.currentTarget.innerHTML = '';
+                                    // Use textContent for safer DOM access instead of innerHTML
+                                    if (e.currentTarget.textContent.trim() === '') {
                                         setContent('');
                                     }
                                 }}

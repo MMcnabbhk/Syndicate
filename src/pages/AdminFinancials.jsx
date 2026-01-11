@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DollarSign, TrendingUp, Download, Eye, X, Check, ArrowRight } from 'lucide-react';
 
 const mockFinancials = [
@@ -20,6 +20,7 @@ const AdminFinancials = () => {
     const [selectedCreator, setSelectedCreator] = useState(null); // For viewing details/recording payout
     const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
     const [filterType, setFilterType] = useState('all'); // 'all', 'pending', 'balance'
+    const timeoutRef = useRef(null);
 
     // Payout Form State
     const [payoutAmount, setPayoutAmount] = useState('');
@@ -28,10 +29,17 @@ const AdminFinancials = () => {
 
     useEffect(() => {
         // Simulate fetch
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             setCreators(mockFinancials);
             setLoading(false);
         }, 600);
+
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
     }, []);
 
     const handleOpenPayout = (creator) => {

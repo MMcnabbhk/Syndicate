@@ -283,6 +283,7 @@ const FinancialsTab = () => {
     const [loading, setLoading] = useState(true);
     const [payoutStatus, setPayoutStatus] = useState(null);
     const THRESHOLD = 50.00;
+    const timeoutRef = useRef(null);
 
     const fetchEarnings = () => {
         setLoading(true);
@@ -293,11 +294,21 @@ const FinancialsTab = () => {
                 setData(resData);
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch((err) => {
+                console.error('Failed to fetch earnings:', err);
+                setLoading(false);
+            });
     };
 
     useEffect(() => {
         fetchEarnings();
+
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
     }, []);
 
     const handlePayout = async () => {
@@ -310,7 +321,11 @@ const FinancialsTab = () => {
             if (result.success) {
                 setPayoutStatus('success');
                 fetchEarnings(); // Refresh balance
-                setTimeout(() => setPayoutStatus(null), 5000);
+                // Clear any existing timeout before setting a new one
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+                timeoutRef.current = setTimeout(() => setPayoutStatus(null), 5000);
             } else {
                 setPayoutStatus('error');
             }

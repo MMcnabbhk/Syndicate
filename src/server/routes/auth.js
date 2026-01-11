@@ -179,38 +179,32 @@ router.post('/dev-login', async (req, res) => {
             }
         }
 
-        // Manually log in the user via Passport
-        req.login(user, (err) => {
-            if (err) {
-                console.error("Login Error:", err);
-                return res.status(500).json({ error: 'Login session failed' });
-            }
-
-            // Fetch author ID if creator
-            Author.findByUserId(user.id).then(author => {
-                console.log(`[Dev Login] Success for user ${user.id}. Author ID: ${author ? author.id : 'None'}`);
-                return res.json({
-                    success: true,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        role: user.role,
-                        authorId: author ? author.id : null
-                    }
-                });
-            }).catch(err => {
-                console.error("Error fetching author details:", err);
-                // Return success anyway, just without authorId
-                return res.json({
-                    success: true,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        role: user.role,
-                        authorId: null
-                    }
-                });
+        // Manually log in the user via Passport (promisified to avoid race conditions)
+        await new Promise((resolve, reject) => {
+            req.login(user, (err) => {
+                if (err) reject(err);
+                else resolve();
             });
+        });
+
+        // Fetch author ID if creator
+        let author = null;
+        try {
+            author = await Author.findByUserId(user.id);
+        } catch (err) {
+            console.error("Error fetching author details:", err);
+            // Continue without authorId
+        }
+
+        console.log(`[Dev Login] Success for user ${user.id}. Author ID: ${author ? author.id : 'None'}`);
+        return res.json({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                authorId: author ? author.id : null
+            }
         });
 
     } catch (e) {
